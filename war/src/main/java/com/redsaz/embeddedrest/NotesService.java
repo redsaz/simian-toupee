@@ -15,15 +15,19 @@
  */
 package com.redsaz.embeddedrest;
 
-import javax.enterprise.context.ApplicationScoped;
+import java.util.Collections;
+import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * An endpoint for accessing notes. The REST endpoints and browser endpoints are
@@ -34,7 +38,6 @@ import javax.ws.rs.core.Response;
 @Path("/notes")
 public class NotesService {
 
-    @ApplicationScoped
     private NotesResource notesRes;
 
     public NotesService() {
@@ -53,7 +56,7 @@ public class NotesService {
     @GET
     @Produces(EmbeddedRestMediaType.NOTES_V1_JSON)
     public Response listNotes() {
-        return Response.status(200).entity(notesRes.getNotes()).build();
+        return Response.ok(notesRes.getNotes()).build();
     }
 
     /**
@@ -65,7 +68,7 @@ public class NotesService {
      * @return Note.
      */
     @GET
-    @Produces({EmbeddedRestMediaType.NOTES_V1_JSON})
+    @Produces({EmbeddedRestMediaType.NOTE_V1_JSON})
     @Path("{id}/{uriName}")
     public Response getNote(@PathParam("id") long id, @PathParam("uriName") String uriName) {
         Note note = notesRes.getNote(id);
@@ -82,7 +85,7 @@ public class NotesService {
      * @return Note.
      */
     @GET
-    @Produces({EmbeddedRestMediaType.NOTES_V1_JSON})
+    @Produces({EmbeddedRestMediaType.NOTE_V1_JSON})
     @Path("{id}")
     public Response getNoteById(@PathParam("id") long id) {
         Note note = notesRes.getNote(id);
@@ -94,7 +97,40 @@ public class NotesService {
 
     @POST
     @Consumes(EmbeddedRestMediaType.NOTES_V1_JSON)
+    @Produces({EmbeddedRestMediaType.NOTES_V1_JSON})
+    public Response createNotes(List<Note> notes) {
+        return Response.status(Status.CREATED).entity(notesRes.createAll(notes)).build();
+    }
+
+    @POST
+    @Consumes(EmbeddedRestMediaType.NOTE_V1_JSON)
+    @Produces({EmbeddedRestMediaType.NOTE_V1_JSON})
     public Response createNote(Note note) {
-        return Response.status(200).entity(notesRes.create(note)).build();
+        List<Note> notes = Collections.singletonList(note);
+        return Response.status(Status.CREATED).entity(notesRes.createAll(notes)).build();
+    }
+
+    @PUT
+    @Consumes(EmbeddedRestMediaType.NOTES_V1_JSON)
+    @Produces({EmbeddedRestMediaType.NOTES_V1_JSON})
+    public Response updateNotes(List<Note> notes) {
+        return Response.status(Status.ACCEPTED).entity(notesRes.updateAll(notes)).build();
+    }
+
+    @PUT
+    @Consumes(EmbeddedRestMediaType.NOTE_V1_JSON)
+    @Produces({EmbeddedRestMediaType.NOTE_V1_JSON})
+    @Path("{id}")
+    public Response updateNote(@PathParam("id") long id, Note note) {
+        Note withId = new Note(id, note.getUriName(), note.getTitle(), note.getBody());
+        List<Note> notes = Collections.singletonList(withId);
+        return Response.status(Status.ACCEPTED).entity(notesRes.updateAll(notes)).build();
+    }
+
+    @DELETE
+    @Path("{id}")
+    public Response deleteNote(@PathParam("id") long id) {
+        notesRes.deleteNote(id);
+        return Response.status(Status.NO_CONTENT).build();
     }
 }

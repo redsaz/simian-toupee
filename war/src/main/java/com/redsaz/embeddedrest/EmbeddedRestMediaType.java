@@ -22,5 +22,6 @@ package com.redsaz.embeddedrest;
  */
 public class EmbeddedRestMediaType {
 
-    public static final String NOTES_V1_JSON = "application/x-embeddedrest-v1+json";
+    public static final String NOTES_V1_JSON = "application/x-embeddedrest-v1-notes+json";
+    public static final String NOTE_V1_JSON = "application/x-embeddedrest-v1-note+json";
 }

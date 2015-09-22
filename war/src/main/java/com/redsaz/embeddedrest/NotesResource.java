@@ -28,6 +28,9 @@ public interface NotesResource {
 
     public Note getNote(long id);
 
-    public String create(Note note);
+    public List<Note> createAll(List<Note> notes);
 
+    public List<Note> updateAll(List<Note> notes);
+
+    public void deleteNote(long id);
 }
