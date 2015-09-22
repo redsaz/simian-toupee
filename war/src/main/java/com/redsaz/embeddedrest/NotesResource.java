@@ -15,23 +15,19 @@
  */
 package com.redsaz.embeddedrest;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
- * The "Business Logic" layer for storing, accessing, and retrieving of notes.
+ * Stores and accesses notes.
  *
  * @author Redsaz <redsaz@gmail.com>
  */
-public class NotesResource {
+public interface NotesResource {
 
-    public List<Note> getNotes() {
-        Note note = new Note("asdf", "Howdy", "I'm a body.");
-        return Collections.singletonList(note);
-    }
+    List<Note> getNotes();
 
-    public Note getNote(String uriName) {
-        return new Note(uriName, "Why Yes This is a Note",
-                "Why would you think otherwise.");
-    }
+    public Note getNote(long id);
+
+    public String create(Note note);
+
 }

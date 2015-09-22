@@ -15,6 +15,7 @@
  */
 package com.redsaz.embeddedrest;
 
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import java.util.HashSet;
 import java.util.Set;
 import javax.ws.rs.ApplicationPath;
@@ -33,6 +34,7 @@ public class EmbeddedRestApplication extends Application {
     public Set<Class<?>> getClasses() {
         Set<Class<?>> classes = new HashSet<>();
         classes.add(NotesService.class);
+        classes.add(JacksonJsonProvider.class);
         return classes;
     }
 

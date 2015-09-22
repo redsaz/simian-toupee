@@ -25,17 +25,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class Note {
 
+    private final long id;
     private final String uriName;
     private final String title;
     private final String body;
 
     @JsonCreator
-    public Note(@JsonProperty("uriName") String inUriName,
+    public Note(
+            @JsonProperty("id") long inId,
+            @JsonProperty("uriName") String inUriName,
             @JsonProperty("title") String inTitle,
             @JsonProperty("body") String inBody) {
+        id = inId;
         uriName = inUriName;
         title = inTitle;
         body = inBody;
+    }
+
+    public long getId() {
+        return id;
     }
 
     public String getUriName() {

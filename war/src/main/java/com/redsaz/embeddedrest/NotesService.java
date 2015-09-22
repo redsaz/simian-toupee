@@ -17,7 +17,9 @@ package com.redsaz.embeddedrest;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -32,9 +34,16 @@ import javax.ws.rs.core.Response;
 @Path("/notes")
 public class NotesService {
 
-    @Inject
     @ApplicationScoped
     private NotesResource notesRes;
+
+    public NotesService() {
+    }
+
+    @Inject
+    public NotesService(NotesResource notesResource) {
+        notesRes = notesResource;
+    }
 
     /**
      * Lists all of the notes URI and titles.
@@ -42,31 +51,50 @@ public class NotesService {
      * @return Notes, by URI and title.
      */
     @GET
-    @Produces(MediaType.NOTES_V1_JSON)
+    @Produces(EmbeddedRestMediaType.NOTES_V1_JSON)
     public Response listNotes() {
         return Response.status(200).entity(notesRes.getNotes()).build();
     }
 
     /**
-     * Lists all of the notes URI and titles.
+     * Get the note contents.
      *
-     * @param uriName The note to get.
-     * @return Notes, by URI and title.
+     * @param id The id of the note.
+     * @param uriName The uri title of the note, not used in retrieving the data
+     * but helpful for users which may read the note.
+     * @return Note.
      */
     @GET
-    @Produces(MediaType.NOTES_V1_JSON)
-    @Path("{uriName}")
-    public Response getNote(@PathParam("uriName") String uriName) {
-        return Response.status(200).entity(notesRes.getNote(uriName)).build();
+    @Produces({EmbeddedRestMediaType.NOTES_V1_JSON})
+    @Path("{id}/{uriName}")
+    public Response getNote(@PathParam("id") long id, @PathParam("uriName") String uriName) {
+        Note note = notesRes.getNote(id);
+        if (note == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(note).build();
     }
 
     /**
-     * Lists all of the notes URI and titles.
+     * Get the note contents.
      *
-     * @return Notes, by URI and title.
+     * @param id The id of the note.
+     * @return Note.
      */
     @GET
-    public Response asdfaasdf() {
-        return Response.status(200).entity("asdf aasfd").build();
+    @Produces({EmbeddedRestMediaType.NOTES_V1_JSON})
+    @Path("{id}")
+    public Response getNoteById(@PathParam("id") long id) {
+        Note note = notesRes.getNote(id);
+        if (note == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(note).build();
+    }
+
+    @POST
+    @Consumes(EmbeddedRestMediaType.NOTES_V1_JSON)
+    public Response createNote(Note note) {
+        return Response.status(200).entity(notesRes.create(note)).build();
     }
 }

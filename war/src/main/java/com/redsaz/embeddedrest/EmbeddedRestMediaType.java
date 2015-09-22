@@ -20,7 +20,7 @@ package com.redsaz.embeddedrest;
  *
  * @author Redsaz <redsaz@gmail.com>
  */
-public class MediaType {
+public class EmbeddedRestMediaType {
 
     public static final String NOTES_V1_JSON = "application/x-embeddedrest-v1+json";
 }
