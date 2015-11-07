@@ -27,7 +27,7 @@ import javax.ws.rs.core.Application;
  *
  * @author Redsaz <redsaz@gmail.com>
  */
-@ApplicationPath("/")
+@ApplicationPath("/rest")
 public class EmbeddedRestApplication extends Application {
 
     @Override
@@ -35,6 +35,7 @@ public class EmbeddedRestApplication extends Application {
         Set<Class<?>> classes = new HashSet<>();
         classes.add(NotesService.class);
         classes.add(JacksonJsonProvider.class);
+        classes.add(StaticContentFilter.class);
         return classes;
     }
 

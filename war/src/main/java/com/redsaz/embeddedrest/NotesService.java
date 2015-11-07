@@ -15,8 +15,16 @@
  */
 package com.redsaz.embeddedrest;
 
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+import freemarker.template.TemplateExceptionHandler;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -26,6 +34,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -39,13 +48,24 @@ import javax.ws.rs.core.Response.Status;
 public class NotesService {
 
     private NotesResource notesRes;
+    private final Configuration cfg;
 
     public NotesService() {
+        cfg = new Configuration(Configuration.VERSION_2_3_23);
+        cfg.setClassForTemplateLoading(NotesService.class, "templates");
+        cfg.setDefaultEncoding("UTF-8");
+        // DEBUG_HANDLER is better for debug, not production
+        cfg.setTemplateExceptionHandler(TemplateExceptionHandler.HTML_DEBUG_HANDLER);
     }
 
     @Inject
     public NotesService(NotesResource notesResource) {
         notesRes = notesResource;
+        cfg = new Configuration(Configuration.VERSION_2_3_23);
+        cfg.setClassForTemplateLoading(NotesService.class, "templates");
+        cfg.setDefaultEncoding("UTF-8");
+        // DEBUG_HANDLER is better for debug, not production
+        cfg.setTemplateExceptionHandler(TemplateExceptionHandler.HTML_DEBUG_HANDLER);
     }
 
     /**
@@ -57,6 +77,29 @@ public class NotesService {
     @Produces(EmbeddedRestMediaType.NOTES_V1_JSON)
     public Response listNotes() {
         return Response.ok(notesRes.getNotes()).build();
+    }
+
+    /**
+     * Presents a web page of notes.
+     *
+     * @return Notes, by URI and title.
+     */
+    @GET
+    @Produces(MediaType.TEXT_HTML)
+    public Response listNotesBrowser() {
+        List<Note> notes = notesRes.getNotes();
+        Map<String, Object> root = new HashMap<>();
+        root.put("notes", notes);
+        try {
+            Template temp = cfg.getTemplate("index.ftl");
+            StringWriter sw = new StringWriter();
+            temp.process(root, sw);
+            return Response.ok(sw.toString()).build();
+        } catch (IOException ex) {
+            throw new RuntimeException("Cannot load template: " + ex.getMessage(), ex);
+        } catch (TemplateException ex) {
+            throw new RuntimeException("Cannot process template: " + ex.getMessage(), ex);
+        }
     }
 
     /**

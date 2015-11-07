@@ -73,6 +73,10 @@
             <groupId>com.github.slugify</groupId>
             <artifactId>slugify</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
