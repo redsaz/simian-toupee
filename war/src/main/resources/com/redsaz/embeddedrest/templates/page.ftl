@@ -13,6 +13,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
+<#escape x as x?html>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -24,18 +25,18 @@
     <meta name="author" content="">
     <link rel="icon" href="favicon.ico">
 
-    <title>Notes</title>
+    <title>${title}</title>
 
     <#-- Bootstrap core CSS -->
-    <link href="dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="${dist}/css/bootstrap.min.css" rel="stylesheet">
 
     <#-- Custom styles for this template -->
-    <link href="dist/css/dashboard.css" rel="stylesheet">
+    <link href="${dist}/css/dashboard.css" rel="stylesheet">
 
     <#-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
-      <script src="dist/js/html5shiv.min.js"></script>
-      <script src="dist/js/respond.min.js"></script>
+      <script src="${dist}/js/html5shiv.min.js"></script>
+      <script src="${dist}/js/respond.min.js"></script>
     <![endif]-->
   </head>
 
@@ -78,35 +79,13 @@
     </nav>
 
     <div class="container-fluid">
-      <div class="row">
-        <div class="col-sm-12 col-md-12 main">
-          <h1 class="page-header">Notes</h1>
-
-          <div class="table-responsive">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Body</th>
-                </tr>
-              </thead>
-              <tbody>
-                <#list notes as note>
-                <tr>
-                  <td>${note.title}</td>
-                  <td>${note.body}</td>
-                </tr>
-                </#list>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+<#include content>
     </div>
 
 
-    <script src="dist/js/jquery.min.js"></script>
-    <script src="dist/js/bootstrap.min.js"></script>
-    <script src="dist/js/ie10-viewport-bug-workaround.js"></script>
+    <script src="${dist}/js/jquery.min.js"></script>
+    <script src="${dist}/js/bootstrap.min.js"></script>
+    <script src="${dist}/js/ie10-viewport-bug-workaround.js"></script>
   </body>
 </html>
+</#escape>

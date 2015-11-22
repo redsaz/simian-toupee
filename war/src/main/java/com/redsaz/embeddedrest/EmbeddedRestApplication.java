@@ -36,6 +36,7 @@ public class EmbeddedRestApplication extends Application {
         classes.add(NotesService.class);
         classes.add(JacksonJsonProvider.class);
         classes.add(StaticContentFilter.class);
+        classes.add(Templater.class);
         return classes;
     }
 
