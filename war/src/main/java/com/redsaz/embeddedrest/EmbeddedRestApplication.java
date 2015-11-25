@@ -34,6 +34,7 @@ public class EmbeddedRestApplication extends Application {
     public Set<Class<?>> getClasses() {
         Set<Class<?>> classes = new HashSet<>();
         classes.add(NotesService.class);
+        classes.add(BrowserNotesService.class);
         classes.add(JacksonJsonProvider.class);
         classes.add(StaticContentFilter.class);
         classes.add(Templater.class);
