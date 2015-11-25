@@ -17,7 +17,7 @@
       <div class="row">
         <div class="col-sm-12 col-md-12 main">
           <form action="${base}/notes" method="POST">
-            <input type="text" class="form-control" name="title" placeholder="Title" value="${note.title}"/>
+            <input type="text" class="form-control" name="title" placeholder="Title" value="${note.title}"/><br/>
             <textarea class="form-control" rows="20" name="body">${note.body}</textarea>
             <input type="hidden" name="id" value="${note.id}"/>
             <button type="submit" class="btn btn-primary">Save</button>

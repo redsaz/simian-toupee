@@ -135,7 +135,7 @@ public class BrowserNotesService {
         } else {
             notesRes.createAll(notes);
         }
-        Response resp = Response.seeOther(URI.create("../notes")).build();
+        Response resp = Response.seeOther(URI.create("notes")).build();
         return resp;
     }
 
@@ -171,7 +171,7 @@ public class BrowserNotesService {
     @Path("delete")
     public Response deleteNoteByBrowser(@FormParam("id") long id) {
         notesRes.deleteNote(id);
-        Response resp = Response.seeOther(URI.create("../notes")).build();
+        Response resp = Response.seeOther(URI.create("notes")).build();
         return resp;
     }
 

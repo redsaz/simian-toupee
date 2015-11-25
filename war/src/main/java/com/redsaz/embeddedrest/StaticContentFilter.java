@@ -42,10 +42,11 @@ public class StaticContentFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         String path = req.getRequestURI().substring(req.getContextPath().length());
 
-        if (path.startsWith("/dist")) {
-            chain.doFilter(request, response); // Goes to default servlet.
+        if (path.startsWith("/dist") || path.endsWith("index.html") || path.endsWith("favicon.ico")) {
+            // Use the default servlet, which knows how to handle static content.
+            request.getServletContext().getNamedDispatcher("default").forward(request, response);
         } else {
-            request.getRequestDispatcher("/rest" + path).forward(request, response);
+            request.getRequestDispatcher(path).forward(request, response);
         }
     }
 

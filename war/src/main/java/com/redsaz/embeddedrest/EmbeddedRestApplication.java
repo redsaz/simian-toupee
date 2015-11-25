@@ -27,7 +27,7 @@ import javax.ws.rs.core.Application;
  *
  * @author Redsaz <redsaz@gmail.com>
  */
-@ApplicationPath("/rest")
+@ApplicationPath("/")
 public class EmbeddedRestApplication extends Application {
 
     @Override

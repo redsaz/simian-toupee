@@ -17,7 +17,7 @@
       <div class="row">
         <div class="col-sm-12 col-md-12 main">
           <form action="${base}/notes" method="POST">
-            <input type="text" class="form-control" name="title" placeholder="Title"/>
+            <input type="text" class="form-control" name="title" placeholder="Title"/><br/>
             <textarea class="form-control" rows="20" name="body"></textarea>
             <button type="submit" class="btn btn-primary">Create</button>
           </form>
