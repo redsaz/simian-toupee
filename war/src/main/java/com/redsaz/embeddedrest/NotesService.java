@@ -15,21 +15,17 @@
  */
 package com.redsaz.embeddedrest;
 
-import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -42,18 +38,14 @@ import javax.ws.rs.core.Response.Status;
 @Path("/notes")
 public class NotesService {
 
-    @Context
-    private HttpServletRequest httpRequest;
     private NotesResource notesRes;
-    private Templater cfg;
 
     public NotesService() {
     }
 
     @Inject
-    public NotesService(NotesResource notesResource, Templater config) {
+    public NotesService(NotesResource notesResource) {
         notesRes = notesResource;
-        cfg = config;
     }
 
     /**
@@ -65,14 +57,6 @@ public class NotesService {
     @Produces(EmbeddedRestMediaType.NOTES_V1_JSON)
     public Response listNotes() {
         return Response.ok(notesRes.getNotes()).build();
-    }
-
-    @POST
-    @Path("delete")
-    public Response deleteNoteByBrowser(@FormParam("id") long id) {
-        notesRes.deleteNote(id);
-        Response resp = Response.seeOther(URI.create("../notes")).build();
-        return resp;
     }
 
     /**

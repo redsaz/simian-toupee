@@ -15,10 +15,6 @@
  */
 package com.redsaz.embeddedrest;
 
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
-import java.io.IOException;
-import java.io.StringWriter;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,8 +42,6 @@ import javax.ws.rs.core.Response;
 @Path("/notes")
 public class BrowserNotesService {
 
-    @Context
-    private HttpServletRequest httpRequest;
     private NotesResource notesRes;
     private Templater cfg;
 
@@ -63,42 +57,36 @@ public class BrowserNotesService {
     /**
      * Presents a web page of notes.
      *
+     * @param httpRequest The request for the page.
      * @return Notes, by URI and title.
      */
     @GET
     @Produces(MediaType.TEXT_HTML)
-    public Response listNotesBrowser() {
+    public Response listNotes(@Context HttpServletRequest httpRequest) {
         String base = httpRequest.getContextPath();
         String dist = base + "/dist";
         List<Note> notes = notesRes.getNotes();
+
         Map<String, Object> root = new HashMap<>();
         root.put("notes", notes);
         root.put("base", base);
         root.put("dist", dist);
         root.put("title", "Notes");
         root.put("content", "notes-list.ftl");
-        try {
-            Template temp = cfg.getCfg().getTemplate("page.ftl");
-            StringWriter sw = new StringWriter();
-            temp.process(root, sw);
-            return Response.ok(sw.toString()).build();
-        } catch (IOException ex) {
-            throw new RuntimeException("Cannot load template: " + ex.getMessage(), ex);
-        } catch (TemplateException ex) {
-            throw new RuntimeException("Cannot process template: " + ex.getMessage(), ex);
-        }
+        return Response.ok(cfg.buildFromTemplate(root, "page.ftl")).build();
     }
 
     /**
      * Presents a web page for editing a specific note.
      *
+     * @param httpRequest The request for the page.
      * @param id The id of the note.
      * @return Note edit page.
      */
     @GET
     @Produces(MediaType.TEXT_HTML)
     @Path("{id}/edit")
-    public Response editNoteByBrowser(@PathParam("id") long id) {
+    public Response editNote(@Context HttpServletRequest httpRequest, @PathParam("id") long id) {
         String base = httpRequest.getContextPath();
         String dist = base + "/dist";
         Note note = notesRes.getNote(id);
@@ -111,22 +99,13 @@ public class BrowserNotesService {
         root.put("dist", dist);
         root.put("title", "Edit Note");
         root.put("content", "note-edit.ftl");
-        try {
-            Template temp = cfg.getCfg().getTemplate("page.ftl");
-            StringWriter sw = new StringWriter();
-            temp.process(root, sw);
-            return Response.ok(sw.toString()).build();
-        } catch (IOException ex) {
-            throw new RuntimeException("Cannot load template: " + ex.getMessage(), ex);
-        } catch (TemplateException ex) {
-            throw new RuntimeException("Cannot process template: " + ex.getMessage(), ex);
-        }
+        return Response.ok(cfg.buildFromTemplate(root, "page.ftl")).build();
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces({MediaType.TEXT_HTML})
-    public Response finishEditOrCreateNoteByBrowser(@FormParam("id") long id,
+    public Response finishEditOrCreateNote(@FormParam("id") long id,
             @FormParam("title") String title, @FormParam("body") String body) {
         Note withId = new Note(id, null, title, body);
         List<Note> notes = Collections.singletonList(withId);
@@ -142,12 +121,13 @@ public class BrowserNotesService {
     /**
      * Presents a web page for creating a specific note.
      *
+     * @param httpRequest The request for the page.
      * @return Note create page.
      */
     @GET
     @Produces(MediaType.TEXT_HTML)
     @Path("create")
-    public Response createNoteByBrowser() {
+    public Response createNote(@Context HttpServletRequest httpRequest) {
         String base = httpRequest.getContextPath();
         String dist = base + "/dist";
         Map<String, Object> root = new HashMap<>();
@@ -155,23 +135,14 @@ public class BrowserNotesService {
         root.put("dist", dist);
         root.put("title", "Crete Note");
         root.put("content", "note-create.ftl");
-        try {
-            Template temp = cfg.getCfg().getTemplate("page.ftl");
-            StringWriter sw = new StringWriter();
-            temp.process(root, sw);
-            return Response.ok(sw.toString()).build();
-        } catch (IOException ex) {
-            throw new RuntimeException("Cannot load template: " + ex.getMessage(), ex);
-        } catch (TemplateException ex) {
-            throw new RuntimeException("Cannot process template: " + ex.getMessage(), ex);
-        }
+        return Response.ok(cfg.buildFromTemplate(root, "page.ftl")).build();
     }
 
     @POST
     @Path("delete")
-    public Response deleteNoteByBrowser(@FormParam("id") long id) {
+    public Response deleteNote(@FormParam("id") long id) {
         notesRes.deleteNote(id);
-        Response resp = Response.seeOther(URI.create("notes")).build();
+        Response resp = Response.seeOther(URI.create("/notes")).build();
         return resp;
     }
 
