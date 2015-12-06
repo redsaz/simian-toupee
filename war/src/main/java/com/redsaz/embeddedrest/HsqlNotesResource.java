@@ -49,36 +49,29 @@ import org.jooq.impl.DSL;
 @ApplicationScoped
 public class HsqlNotesResource implements NotesResource {
 
-    private static final JDBCPool pool = initPool();
+    private static final JDBCPool POOL = initPool();
     private static final Slugify SLG = initSlug();
     private static final int SHORTENED_MAX = 60;
     private static final int SHORTENED_MIN = 12;
 
     @Override
     public List<Note> getNotes() {
-        List<Note> notes = new ArrayList<>();
-        try (Connection c = pool.getConnection()) {
+        try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
             List<NoteRecord> nrs = context.selectFrom(NOTE).fetch();
-            for (NoteRecord nr : nrs) {
-                Note result = new Note(nr.getValue(NOTE.ID), nr.getValue(NOTE.URINAME), nr.getValue(NOTE.TITLE), nr.getValue(NOTE.BODY));
-                notes.add(result);
-            }
+            return recordsToNotes(nrs);
         } catch (SQLException ex) {
             throw new RuntimeException("Cannot retrieve notes: " + ex.getMessage(), ex);
         }
-
-        return notes;
     }
 
     @Override
     public Note getNote(long id) {
-        try (Connection c = pool.getConnection()) {
+        try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
 
             NoteRecord nr = context.selectFrom(NOTE).where(NOTE.ID.eq(id)).fetchOne();
-            Note result = new Note(nr.getValue(NOTE.ID), nr.getValue(NOTE.URINAME), nr.getValue(NOTE.TITLE), nr.getValue(NOTE.BODY));
-            return result;
+            return recordToNote(nr);
         } catch (SQLException ex) {
             throw new RuntimeException("Cannot get note_id=" + id + " because: " + ex.getMessage(), ex);
         }
@@ -89,7 +82,7 @@ public class HsqlNotesResource implements NotesResource {
         if (notes == null || notes.isEmpty()) {
             return Collections.emptyList();
         }
-        try (Connection c = pool.getConnection()) {
+        try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
 
             InsertValuesStep3<NoteRecord, String, String, String> query = context.insertInto(NOTE).columns(NOTE.URINAME, NOTE.TITLE, NOTE.BODY);
@@ -97,13 +90,8 @@ public class HsqlNotesResource implements NotesResource {
                 Note sanitized = sanitizeAndPutId(note);
                 query.values(sanitized.getUriName(), sanitized.getTitle(), sanitized.getBody());
             }
-            Result<NoteRecord> records = query.returning().fetch();
-            List<Note> results = new ArrayList<>(records.size());
-            for (NoteRecord nr : records) {
-                Note result = new Note(nr.getValue(NOTE.ID), nr.getValue(NOTE.URINAME), nr.getValue(NOTE.TITLE), nr.getValue(NOTE.BODY));
-                results.add(result);
-            }
-            return results;
+            Result<NoteRecord> nrs = query.returning().fetch();
+            return recordsToNotes(nrs);
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to create notes: " + ex.getMessage(), ex);
         }
@@ -117,7 +105,7 @@ public class HsqlNotesResource implements NotesResource {
         RuntimeException updateFailure = null;
         List<Long> ids = new ArrayList<>(notes.size());
         for (Note note : notes) {
-            try (Connection c = pool.getConnection()) {
+            try (Connection c = POOL.getConnection()) {
                 DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
 
                 Note sanitized = sanitizeAndPutId(note);
@@ -137,16 +125,11 @@ public class HsqlNotesResource implements NotesResource {
             throw updateFailure;
         }
 
-        try (Connection c = pool.getConnection()) {
+        try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
 
             Result<NoteRecord> records = context.selectFrom(NOTE).where(NOTE.ID.in(ids)).fetch();
-            List<Note> results = new ArrayList<>(records.size());
-            for (NoteRecord nr : records) {
-                Note result = new Note(nr.getValue(NOTE.ID), nr.getValue(NOTE.URINAME), nr.getValue(NOTE.TITLE), nr.getValue(NOTE.BODY));
-                results.add(result);
-            }
-            return results;
+            return recordsToNotes(records);
         } catch (SQLException ex) {
             throw new RuntimeException("Sucessfully updated note_ids=" + ids
                     + " but failed to return the updated records: " + ex.getMessage(), ex);
@@ -155,7 +138,7 @@ public class HsqlNotesResource implements NotesResource {
 
     @Override
     public void deleteNote(long id) {
-        try (Connection c = pool.getConnection()) {
+        try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
 
             context.delete(NOTE).where(NOTE.ID.eq(id)).execute();
@@ -241,5 +224,26 @@ public class HsqlNotesResource implements NotesResource {
             throw new RuntimeException("Couldn't initialize Slugify.");
         }
         return sluggy;
+    }
+
+    private static Note recordToNote(NoteRecord nr) {
+        if (nr == null) {
+            return null;
+        }
+        return new Note(nr.getValue(NOTE.ID), nr.getValue(NOTE.URINAME), nr.getValue(NOTE.TITLE), nr.getValue(NOTE.BODY));
+    }
+
+    private static List<Note> recordsToNotes(List<NoteRecord> nrs) {
+        if (nrs == null) {
+            return null;
+        }
+        List<Note> notes = new ArrayList<>(nrs.size());
+        for (NoteRecord nr : nrs) {
+            Note result = recordToNote(nr);
+            if (result != null) {
+                notes.add(result);
+            }
+        }
+        return notes;
     }
 }

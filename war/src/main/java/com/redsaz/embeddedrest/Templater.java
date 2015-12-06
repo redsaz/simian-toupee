@@ -16,51 +16,13 @@
 package com.redsaz.embeddedrest;
 
 import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
-import freemarker.template.TemplateExceptionHandler;
-import java.io.IOException;
-import java.io.StringWriter;
-import javax.enterprise.context.ApplicationScoped;
-import javax.ws.rs.core.Response;
 
 /**
  * Holds the {@link Configuration} since it cannot be directly proxied by CDI.
  *
  * @author Redsaz <redsaz@gmail.com>
  */
-@ApplicationScoped
-public class Templater {
+public interface Templater {
 
-    private Configuration cfg;
-
-    public Templater() {
-        cfg = initConfig();
-    }
-
-    public Configuration getCfg() {
-        return cfg;
-    }
-
-    public String buildFromTemplate(Object dataModel, String templateName) {
-        try {
-            Template temp = cfg.getTemplate("page.ftl");
-            StringWriter sw = new StringWriter();
-            temp.process(dataModel, sw);
-            return sw.toString();
-        } catch (IOException ex) {
-            throw new RuntimeException("Cannot load template: " + ex.getMessage(), ex);
-        } catch (TemplateException ex) {
-            throw new RuntimeException("Cannot process template: " + ex.getMessage(), ex);
-        }
-    }
-
-    private static Configuration initConfig() {
-        Configuration config = new Configuration(Configuration.VERSION_2_3_23);
-        config.setClassForTemplateLoading(NotesService.class, "templates");
-        config.setDefaultEncoding("UTF-8");
-        // DEBUG_HANDLER is better for debug, not production
-        config.setTemplateExceptionHandler(TemplateExceptionHandler.HTML_DEBUG_HANDLER);
-        return config;
-    }
+    String buildFromTemplate(Object dataModel, String templateName);
 }

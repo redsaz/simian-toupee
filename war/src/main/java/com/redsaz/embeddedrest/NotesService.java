@@ -21,6 +21,7 @@ import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -73,7 +74,7 @@ public class NotesService {
     public Response getNote(@PathParam("id") long id, @PathParam("uriName") String uriName) {
         Note note = notesRes.getNote(id);
         if (note == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            throw new NotFoundException("Could not find note id=" + id);
         }
         return Response.ok(note).build();
     }
@@ -90,7 +91,7 @@ public class NotesService {
     public Response getNoteById(@PathParam("id") long id) {
         Note note = notesRes.getNote(id);
         if (note == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            throw new NotFoundException("Could not find note id=" + id);
         }
         return Response.ok(note).build();
     }

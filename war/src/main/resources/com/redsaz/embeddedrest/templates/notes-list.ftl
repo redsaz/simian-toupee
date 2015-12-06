@@ -31,7 +31,7 @@
               <tbody>
                 <#list notes as note>
                 <tr>
-                  <td>${note.title}</td>
+                  <td><a href="notes/${note.id}">${note.title}</a></td>
                   <td>${note.body}</td>
                   <td>
                     <form action="${base}/notes/delete" method="POST">

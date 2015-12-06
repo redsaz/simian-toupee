@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -77,6 +78,32 @@ public class BrowserNotesService {
     }
 
     /**
+     * Presents a web page for viewing a specific note.
+     *
+     * @param httpRequest The request for the page.
+     * @param id The id of the note.
+     * @return Note view page.
+     */
+    @GET
+    @Produces(MediaType.TEXT_HTML)
+    @Path("{id}")
+    public Response getNote(@Context HttpServletRequest httpRequest, @PathParam("id") long id) {
+        String base = httpRequest.getContextPath();
+        String dist = base + "/dist";
+        Note note = notesRes.getNote(id);
+        if (note == null) {
+            throw new NotFoundException("Could not find note id=" + id);
+        }
+        Map<String, Object> root = new HashMap<>();
+        root.put("note", note);
+        root.put("base", base);
+        root.put("dist", dist);
+        root.put("title", note.getTitle());
+        root.put("content", "note-view.ftl");
+        return Response.ok(cfg.buildFromTemplate(root, "page.ftl")).build();
+    }
+
+    /**
      * Presents a web page for editing a specific note.
      *
      * @param httpRequest The request for the page.
@@ -91,13 +118,13 @@ public class BrowserNotesService {
         String dist = base + "/dist";
         Note note = notesRes.getNote(id);
         if (note == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            throw new NotFoundException("Could not find note id=" + id);
         }
         Map<String, Object> root = new HashMap<>();
         root.put("note", note);
         root.put("base", base);
         root.put("dist", dist);
-        root.put("title", "Edit Note");
+        root.put("title", note.getTitle() + " - Edit");
         root.put("content", "note-edit.ftl");
         return Response.ok(cfg.buildFromTemplate(root, "page.ftl")).build();
     }
