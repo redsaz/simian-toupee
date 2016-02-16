@@ -39,7 +39,9 @@ public class EmbeddedRestApplication extends Application {
         classes.add(StaticContentFilter.class);
         classes.add(Templater.class);
         classes.add(FreemarkerTemplater.class);
-        classes.add(EmbeddedRestExceptionMapper.class);
+        classes.add(ExceptionMappers.class);
+        classes.add(ExceptionMappers.AppExceptionMapper.class);
+        classes.add(ExceptionMappers.NotFoundMapper.class);
         return classes;
     }
 

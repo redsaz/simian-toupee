@@ -26,11 +26,11 @@ import java.util.Collections;
 import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
+import javax.ws.rs.NotFoundException;
 import liquibase.Liquibase;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
-import liquibase.exception.DatabaseException;
 import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.hsqldb.jdbc.JDBCPool;
@@ -61,7 +61,7 @@ public class HsqlNotesResource implements NotesResource {
             List<NoteRecord> nrs = context.selectFrom(NOTE).fetch();
             return recordsToNotes(nrs);
         } catch (SQLException ex) {
-            throw new RuntimeException("Cannot retrieve notes: " + ex.getMessage(), ex);
+            throw new AppServerException("Cannot retrieve notes: " + ex.getMessage(), ex);
         }
     }
 
@@ -73,7 +73,7 @@ public class HsqlNotesResource implements NotesResource {
             NoteRecord nr = context.selectFrom(NOTE).where(NOTE.ID.eq(id)).fetchOne();
             return recordToNote(nr);
         } catch (SQLException ex) {
-            throw new RuntimeException("Cannot get note_id=" + id + " because: " + ex.getMessage(), ex);
+            throw new AppServerException("Cannot get note_id=" + id + " because: " + ex.getMessage(), ex);
         }
     }
 
@@ -93,7 +93,7 @@ public class HsqlNotesResource implements NotesResource {
             Result<NoteRecord> nrs = query.returning().fetch();
             return recordsToNotes(nrs);
         } catch (SQLException ex) {
-            throw new RuntimeException("Failed to create notes: " + ex.getMessage(), ex);
+            throw new AppServerException("Failed to create notes: " + ex.getMessage(), ex);
         }
     }
 
@@ -109,16 +109,27 @@ public class HsqlNotesResource implements NotesResource {
                 DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
 
                 Note sanitized = sanitizeAndPutId(note);
-                context.update(NOTE).set(NOTE.URINAME, sanitized.getUriName())
+                int numNotesAffected = context.update(NOTE)
+                        .set(NOTE.URINAME, sanitized.getUriName())
                         .set(NOTE.TITLE, sanitized.getTitle())
                         .set(NOTE.BODY, sanitized.getBody())
                         .where(NOTE.ID.eq(sanitized.getId())).execute();
+                if (numNotesAffected != 1) {
+                    throw new NotFoundException("Failed to update note_id="
+                            + sanitized.getId() + " because it does not exist.");
+                }
                 ids.add(sanitized.getId());
             } catch (SQLException ex) {
                 if (updateFailure == null) {
-                    updateFailure = new RuntimeException("Failed to update one or more notes.");
+                    updateFailure = new AppException("Failed to update one or more notes.");
                 }
                 updateFailure.addSuppressed(ex);
+            } catch (NotFoundException ex) {
+                if (updateFailure == null) {
+                    updateFailure = ex;
+                } else {
+                    updateFailure.addSuppressed(ex);
+                }
             }
         }
         if (updateFailure != null) {
@@ -131,7 +142,7 @@ public class HsqlNotesResource implements NotesResource {
             Result<NoteRecord> records = context.selectFrom(NOTE).where(NOTE.ID.in(ids)).fetch();
             return recordsToNotes(records);
         } catch (SQLException ex) {
-            throw new RuntimeException("Sucessfully updated note_ids=" + ids
+            throw new AppServerException("Sucessfully updated note_ids=" + ids
                     + " but failed to return the updated records: " + ex.getMessage(), ex);
         }
     }
@@ -143,7 +154,7 @@ public class HsqlNotesResource implements NotesResource {
 
             context.delete(NOTE).where(NOTE.ID.eq(id)).execute();
         } catch (SQLException ex) {
-            throw new RuntimeException("Failed to delete note_id=" + id
+            throw new AppServerException("Failed to delete note_id=" + id
                     + " because: " + ex.getMessage(), ex);
         }
     }
@@ -162,7 +173,7 @@ public class HsqlNotesResource implements NotesResource {
             if (uriName == null || uriName.isEmpty()) {
                 uriName = shortened(note.getBody());
                 if (uriName == null || uriName.isEmpty()) {
-                    throw new IllegalArgumentException("Note must have at least a uri, title, or body.");
+                    throw new AppClientException("Note must have at least a uri, title, or body.");
                 }
             }
         }
@@ -206,12 +217,8 @@ public class HsqlNotesResource implements NotesResource {
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(c));
             Liquibase liquibase = new Liquibase("embeddedrest-db.yaml", new ClassLoaderResourceAccessor(), database);
             liquibase.update((String) null);
-        } catch (SQLException ex) {
-            throw new RuntimeException("Cannot initialize notes resource: " + ex.getMessage(), ex);
-        } catch (DatabaseException ex) {
-            throw new RuntimeException("Cannot initialize notes resource: " + ex.getMessage(), ex);
-        } catch (LiquibaseException ex) {
-            throw new RuntimeException("Cannot initialize notes resource: " + ex.getMessage(), ex);
+        } catch (SQLException | LiquibaseException ex) {
+            throw new AppServerException("Cannot initialize notes resource: " + ex.getMessage(), ex);
         }
         return jdbc;
     }
@@ -221,7 +228,7 @@ public class HsqlNotesResource implements NotesResource {
         try {
             sluggy = new Slugify();
         } catch (IOException ex) {
-            throw new RuntimeException("Couldn't initialize Slugify.");
+            throw new AppServerException("Couldn't initialize Slugify.");
         }
         return sluggy;
     }

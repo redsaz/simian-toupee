@@ -31,8 +31,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 /**
- * An endpoint for accessing notes. The REST endpoints and browser endpoints are
- * identical; look at docs/endpoints.md for why.
+ * An endpoint for accessing notes. Many of the REST endpoints and browser
+ * endpoints are identical where possible; look at docs/endpoints.md for why.
  *
  * @author Redsaz <redsaz@gmail.com>
  */

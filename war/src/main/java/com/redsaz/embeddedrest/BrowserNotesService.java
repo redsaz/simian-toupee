@@ -160,7 +160,7 @@ public class BrowserNotesService {
         Map<String, Object> root = new HashMap<>();
         root.put("base", base);
         root.put("dist", dist);
-        root.put("title", "Crete Note");
+        root.put("title", "Create Note");
         root.put("content", "note-create.ftl");
         return Response.ok(cfg.buildFromTemplate(root, "page.ftl")).build();
     }
