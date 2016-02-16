@@ -3,7 +3,7 @@
     <display-name>Restful Web Application</display-name>
     <filter>
         <filter-name>filter</filter-name>
-        <filter-class>com.redsaz.embeddedrest.StaticContentFilter</filter-class>
+        <filter-class>com.redsaz.embeddedrest.view.StaticContentFilter</filter-class>
     </filter>
     <filter-mapping>
         <filter-name>filter</filter-name>
@@ -16,7 +16,7 @@
         </servlet-class>
         <init-param>
             <param-name>javax.ws.rs.Application</param-name>
-            <param-value>com.redsaz.embeddedrest.EmbeddedRestApplication</param-value>
+            <param-value>com.redsaz.embeddedrest.view.EmbeddedRestApplication</param-value>
         </init-param>
     </servlet>
     <servlet>

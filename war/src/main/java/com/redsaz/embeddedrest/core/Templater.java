@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.redsaz.embeddedrest;
+package com.redsaz.embeddedrest.core;
+
+import freemarker.template.Configuration;
 
 /**
- * All of the media types accepted and sent.
+ * Holds the {@link Configuration} since it cannot be directly proxied by CDI.
  *
  * @author Redsaz <redsaz@gmail.com>
  */
-public class EmbeddedRestMediaType {
+public interface Templater {
 
-    public static final String NOTES_V1_JSON = "application/x-embeddedrest-v1-notes+json";
-    public static final String NOTE_V1_JSON = "application/x-embeddedrest-v1-note+json";
+    String buildFromTemplate(Object dataModel, String templateName);
 }

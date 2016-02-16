@@ -13,9 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.redsaz.embeddedrest;
+package com.redsaz.embeddedrest.view;
 
+import com.redsaz.embeddedrest.core.NotesService;
 import com.github.slugify.Slugify;
+import com.redsaz.embeddedrest.core.AppClientException;
+import com.redsaz.embeddedrest.core.AppException;
+import com.redsaz.embeddedrest.core.AppServerException;
+import com.redsaz.embeddedrest.model.Note;
 import static com.redsaz.embeddedrest.model.tables.Note.NOTE;
 import com.redsaz.embeddedrest.model.tables.records.NoteRecord;
 import java.io.IOException;
@@ -47,7 +52,7 @@ import org.jooq.impl.DSL;
  */
 @Default
 @ApplicationScoped
-public class HsqlNotesResource implements NotesResource {
+public class HsqlNotesService implements NotesService {
 
     private static final JDBCPool POOL = initPool();
     private static final Slugify SLG = initSlug();
@@ -218,7 +223,7 @@ public class HsqlNotesResource implements NotesResource {
             Liquibase liquibase = new Liquibase("embeddedrest-db.yaml", new ClassLoaderResourceAccessor(), database);
             liquibase.update((String) null);
         } catch (SQLException | LiquibaseException ex) {
-            throw new AppServerException("Cannot initialize notes resource: " + ex.getMessage(), ex);
+            throw new AppServerException("Cannot initialize notes service: " + ex.getMessage(), ex);
         }
         return jdbc;
     }

@@ -15,6 +15,10 @@
  */
 package com.redsaz.embeddedrest;
 
+import com.redsaz.embeddedrest.core.Templater;
+import com.redsaz.embeddedrest.model.Note;
+import com.redsaz.embeddedrest.core.NotesService;
+import com.redsaz.embeddedrest.view.BrowserNotesResource;
 import java.util.Collections;
 import javax.servlet.http.HttpServletRequest;
 import org.jboss.resteasy.core.Dispatcher;
@@ -23,24 +27,24 @@ import org.jboss.resteasy.mock.MockHttpResponse;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.HttpResponse;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.resteasy.mock.MockHttpServletRequest;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Redsaz <redsaz@gmail.com>
  */
-public class BaseServiceTest extends Assert {
+public class BaseResourceTest extends Assert {
 
     public static final String DEFAULT_DP = "mocksForNotesService";
 
     public static class Context {
 
         public Dispatcher dispatcher;
-        public NotesResource notesResource;
+        public NotesService notesService;
         public Templater templater;
 
         public HttpResponse invoke(HttpRequest request) {
@@ -53,10 +57,10 @@ public class BaseServiceTest extends Assert {
     private static Context setup() {
         Context context = new Context();
         context.dispatcher = createDispatcher();
-        context.notesResource = createNotesResource();
+        context.notesService = createNotesGoods();
         context.templater = createTemplater();
 
-        context.dispatcher.getRegistry().addSingletonResource(new BrowserNotesService(context.notesResource, context.templater));
+        context.dispatcher.getRegistry().addSingletonResource(new BrowserNotesResource(context.notesService, context.templater));
         context.dispatcher.getProviderFactory().registerProvider(BasicExceptionMapper.class);
 
         return context;
@@ -71,15 +75,15 @@ public class BaseServiceTest extends Assert {
         return dispatcher;
     }
 
-    private static NotesResource createNotesResource() {
-        NotesResource mockedNotesResource = mock(NotesResource.class);
+    private static NotesService createNotesGoods() {
+        NotesService mockedNotesGoods = mock(NotesService.class);
         Note existingNote = new Note(1L, "mock", "mockTitle", "mockBody");
-        when(mockedNotesResource.getNote(1L)).thenReturn(existingNote);
+        when(mockedNotesGoods.getNote(1L)).thenReturn(existingNote);
         Note nonExistingNote = null;
-        when(mockedNotesResource.getNote(0L)).thenReturn(nonExistingNote);
-        when(mockedNotesResource.getNotes()).thenReturn(Collections.singletonList(existingNote));
+        when(mockedNotesGoods.getNote(0L)).thenReturn(nonExistingNote);
+        when(mockedNotesGoods.getNotes()).thenReturn(Collections.singletonList(existingNote));
 
-        return mockedNotesResource;
+        return mockedNotesGoods;
     }
 
     private static Templater createTemplater() {

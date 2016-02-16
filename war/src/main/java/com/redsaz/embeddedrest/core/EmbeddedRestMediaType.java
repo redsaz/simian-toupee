@@ -13,24 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.redsaz.embeddedrest;
-
-import java.util.List;
+package com.redsaz.embeddedrest.core;
 
 /**
- * Stores and accesses notes.
+ * All of the media types accepted and sent.
  *
  * @author Redsaz <redsaz@gmail.com>
  */
-public interface NotesResource {
+public class EmbeddedRestMediaType {
 
-    List<Note> getNotes();
-
-    public Note getNote(long id);
-
-    public List<Note> createAll(List<Note> notes);
-
-    public List<Note> updateAll(List<Note> notes);
-
-    public void deleteNote(long id);
+    public static final String NOTES_V1_JSON = "application/x-embeddedrest-v1-notes+json";
+    public static final String NOTE_V1_JSON = "application/x-embeddedrest-v1-note+json";
 }

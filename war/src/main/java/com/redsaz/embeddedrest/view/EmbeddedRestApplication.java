@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.redsaz.embeddedrest;
+package com.redsaz.embeddedrest.view;
 
+import com.redsaz.embeddedrest.exception.ExceptionMappers;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.redsaz.embeddedrest.core.Templater;
 import java.util.HashSet;
 import java.util.Set;
 import javax.ws.rs.ApplicationPath;
@@ -33,8 +35,8 @@ public class EmbeddedRestApplication extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         Set<Class<?>> classes = new HashSet<>();
-        classes.add(NotesService.class);
-        classes.add(BrowserNotesService.class);
+        classes.add(NotesResource.class);
+        classes.add(BrowserNotesResource.class);
         classes.add(JacksonJsonProvider.class);
         classes.add(StaticContentFilter.class);
         classes.add(Templater.class);

@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.redsaz.embeddedrest;
+package com.redsaz.embeddedrest.exception;
 
+import com.redsaz.embeddedrest.core.Templater;
+import com.redsaz.embeddedrest.core.AppException;
+import com.redsaz.embeddedrest.core.AppClientException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.inject.Inject;

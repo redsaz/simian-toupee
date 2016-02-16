@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.redsaz.embeddedrest;
+package com.redsaz.embeddedrest.core;
 
 /**
  * The base exception type for exceptions from this application.

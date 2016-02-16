@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.redsaz.embeddedrest;
+package com.redsaz.embeddedrest.view;
 
+import com.redsaz.embeddedrest.model.Note;
+import com.redsaz.embeddedrest.core.Templater;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,6 +35,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import com.redsaz.embeddedrest.core.NotesService;
 
 /**
  * An endpoint for accessing notes. The REST endpoints and browser endpoints are
@@ -41,17 +44,17 @@ import javax.ws.rs.core.Response;
  * @author Redsaz <redsaz@gmail.com>
  */
 @Path("/notes")
-public class BrowserNotesService {
+public class BrowserNotesResource {
 
-    private NotesResource notesRes;
+    private NotesService notesSrv;
     private Templater cfg;
 
-    public BrowserNotesService() {
+    public BrowserNotesResource() {
     }
 
     @Inject
-    public BrowserNotesService(NotesResource notesResource, Templater config) {
-        notesRes = notesResource;
+    public BrowserNotesResource(NotesService notesService, Templater config) {
+        notesSrv = notesService;
         cfg = config;
     }
 
@@ -66,7 +69,7 @@ public class BrowserNotesService {
     public Response listNotes(@Context HttpServletRequest httpRequest) {
         String base = httpRequest.getContextPath();
         String dist = base + "/dist";
-        List<Note> notes = notesRes.getNotes();
+        List<Note> notes = notesSrv.getNotes();
 
         Map<String, Object> root = new HashMap<>();
         root.put("notes", notes);
@@ -90,7 +93,7 @@ public class BrowserNotesService {
     public Response getNote(@Context HttpServletRequest httpRequest, @PathParam("id") long id) {
         String base = httpRequest.getContextPath();
         String dist = base + "/dist";
-        Note note = notesRes.getNote(id);
+        Note note = notesSrv.getNote(id);
         if (note == null) {
             throw new NotFoundException("Could not find note id=" + id);
         }
@@ -116,7 +119,7 @@ public class BrowserNotesService {
     public Response editNote(@Context HttpServletRequest httpRequest, @PathParam("id") long id) {
         String base = httpRequest.getContextPath();
         String dist = base + "/dist";
-        Note note = notesRes.getNote(id);
+        Note note = notesSrv.getNote(id);
         if (note == null) {
             throw new NotFoundException("Could not find note id=" + id);
         }
@@ -137,9 +140,9 @@ public class BrowserNotesService {
         Note withId = new Note(id, null, title, body);
         List<Note> notes = Collections.singletonList(withId);
         if (id != 0) {
-            notesRes.updateAll(notes);
+            notesSrv.updateAll(notes);
         } else {
-            notesRes.createAll(notes);
+            notesSrv.createAll(notes);
         }
         Response resp = Response.seeOther(URI.create("notes")).build();
         return resp;
@@ -168,7 +171,7 @@ public class BrowserNotesService {
     @POST
     @Path("delete")
     public Response deleteNote(@FormParam("id") long id) {
-        notesRes.deleteNote(id);
+        notesSrv.deleteNote(id);
         Response resp = Response.seeOther(URI.create("/notes")).build();
         return resp;
     }

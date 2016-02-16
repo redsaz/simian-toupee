@@ -15,6 +15,8 @@
  */
 package com.redsaz.embeddedrest;
 
+import com.redsaz.embeddedrest.core.AppClientException;
+import com.redsaz.embeddedrest.model.Note;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
@@ -24,15 +26,15 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
 import org.jboss.resteasy.mock.MockHttpRequest;
 import org.jboss.resteasy.spi.HttpResponse;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.testng.annotations.Test;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Redsaz <redsaz@gmail.com>
  */
-public class BrowserNotesServiceTest extends BaseServiceTest {
+public class BrowserNotesResourceTest extends BaseResourceTest {
 
     @Test(dataProvider = DEFAULT_DP)
     public void testListNotes(Context context) throws URISyntaxException {
@@ -44,7 +46,7 @@ public class BrowserNotesServiceTest extends BaseServiceTest {
         // ... Then the notes list page should be returned.
         assertEquals(response.getStatus(), HttpServletResponse.SC_OK);
 
-        verify(context.notesResource).getNotes();
+        verify(context.notesService).getNotes();
         verify(context.templater).buildFromTemplate(any(), any(String.class));
     }
 
@@ -58,7 +60,7 @@ public class BrowserNotesServiceTest extends BaseServiceTest {
         // ... Then the page should be retrieved, and the notes contents accessed.
         assertEquals(response.getStatus(), HttpServletResponse.SC_OK);
 
-        verify(context.notesResource).getNote(1L);
+        verify(context.notesService).getNote(1L);
         verify(context.templater).buildFromTemplate(any(), any(String.class));
     }
 
@@ -72,7 +74,7 @@ public class BrowserNotesServiceTest extends BaseServiceTest {
         // ...then a 404 should be returned.
         assertEquals(response.getStatus(), HttpServletResponse.SC_NOT_FOUND);
 
-        verify(context.notesResource).getNote(0L);
+        verify(context.notesService).getNote(0L);
     }
 
     @Test(dataProvider = DEFAULT_DP)
@@ -85,7 +87,7 @@ public class BrowserNotesServiceTest extends BaseServiceTest {
         // ... Then the page should be retrieved, and the notes contents accessed.
         assertEquals(response.getStatus(), HttpServletResponse.SC_OK);
 
-        verify(context.notesResource).getNote(1L);
+        verify(context.notesService).getNote(1L);
         verify(context.templater).buildFromTemplate(any(), any(String.class));
     }
 
@@ -99,7 +101,7 @@ public class BrowserNotesServiceTest extends BaseServiceTest {
         // ...then a 404 should be returned.
         assertEquals(response.getStatus(), HttpServletResponse.SC_NOT_FOUND);
 
-        verify(context.notesResource).getNote(0L);
+        verify(context.notesService).getNote(0L);
     }
 
     @Test(dataProvider = DEFAULT_DP)
@@ -131,7 +133,7 @@ public class BrowserNotesServiceTest extends BaseServiceTest {
         URI actualLocation = (URI) response.getOutputHeaders().getFirst("Location");
         URI expectedLocation = URI.create("/notes");
         assertEquals(actualLocation, expectedLocation);
-        verify(context.notesResource).deleteNote(1L);
+        verify(context.notesService).deleteNote(1L);
     }
 
     @Test(dataProvider = DEFAULT_DP)
@@ -145,7 +147,7 @@ public class BrowserNotesServiceTest extends BaseServiceTest {
                 .addFormHeader("body", "Example Body")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.TEXT_HTML);
-        when(context.notesResource.updateAll(any(List.class)))
+        when(context.notesService.updateAll(any(List.class)))
                 .thenReturn(Collections.singletonList(
                         new Note(1, "example-title", "Example Title", "Example Body")));
         HttpResponse response = context.invoke(request);
@@ -156,7 +158,7 @@ public class BrowserNotesServiceTest extends BaseServiceTest {
         URI actualLocation = (URI) response.getOutputHeaders().getFirst("Location");
         URI expectedLocation = URI.create("/notes");
         assertEquals(actualLocation, expectedLocation);
-        verify(context.notesResource).updateAll(any(List.class));
+        verify(context.notesService).updateAll(any(List.class));
     }
 
     @Test(dataProvider = DEFAULT_DP)
@@ -170,13 +172,13 @@ public class BrowserNotesServiceTest extends BaseServiceTest {
                 .addFormHeader("body", "Example Body")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.TEXT_HTML);
-        when(context.notesResource.updateAll(any(List.class)))
+        when(context.notesService.updateAll(any(List.class)))
                 .thenThrow(new NotFoundException("Failed to update one or more notes."));
         HttpResponse response = context.invoke(request);
 
         // ... Then not found status code should be returned.
         assertEquals(response.getStatus(), HttpServletResponse.SC_NOT_FOUND);
-        verify(context.notesResource).updateAll(any(List.class));
+        verify(context.notesService).updateAll(any(List.class));
     }
 
     @Test(dataProvider = DEFAULT_DP)
@@ -190,7 +192,7 @@ public class BrowserNotesServiceTest extends BaseServiceTest {
                 .addFormHeader("body", "Example Body")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.TEXT_HTML);
-        when(context.notesResource.createAll(any(List.class)))
+        when(context.notesService.createAll(any(List.class)))
                 .thenReturn(Collections.singletonList(
                         new Note(2, "example-title", "Example Title", "Example Body")));
         HttpResponse response = context.invoke(request);
@@ -201,7 +203,7 @@ public class BrowserNotesServiceTest extends BaseServiceTest {
         URI actualLocation = (URI) response.getOutputHeaders().getFirst("Location");
         URI expectedLocation = URI.create("/notes");
         assertEquals(actualLocation, expectedLocation);
-        verify(context.notesResource).createAll(any(List.class));
+        verify(context.notesService).createAll(any(List.class));
     }
 
     @Test(dataProvider = DEFAULT_DP)
@@ -216,14 +218,14 @@ public class BrowserNotesServiceTest extends BaseServiceTest {
                 .addFormHeader("body", "")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.TEXT_HTML);
-        when(context.notesResource.createAll(any(List.class)))
+        when(context.notesService.createAll(any(List.class)))
                 .thenThrow(new AppClientException("Note must have at least a uri, title, or body."));
         HttpResponse response = context.invoke(request);
 
         // ... Then the note should not be created and the client receives an
         // error page.
         assertEquals(response.getStatus(), HttpServletResponse.SC_BAD_REQUEST);
-        verify(context.notesResource).createAll(any(List.class));
+        verify(context.notesService).createAll(any(List.class));
     }
 
 }

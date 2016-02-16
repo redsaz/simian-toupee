@@ -180,7 +180,7 @@ public class EmbeddedRest {
         System.out.println("Starting embedded server...");
         UndertowJaxrsServer jaxrsServer = new UndertowJaxrsServer();
         ResteasyDeployment restDeployment = new ResteasyDeployment();
-        restDeployment.setApplicationClass("com.redsaz.embeddedrest.EmbeddedRestApplication");
+        restDeployment.setApplicationClass("com.redsaz.embeddedrest.view.EmbeddedRestApplication");
         restDeployment.setInjectorFactoryClass("org.jboss.resteasy.cdi.CdiInjectorFactory");
         DeploymentInfo deployment = jaxrsServer.undertowDeployment(restDeployment);
         deployment.setClassLoader(ucl)

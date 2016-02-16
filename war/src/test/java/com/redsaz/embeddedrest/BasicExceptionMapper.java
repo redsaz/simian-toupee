@@ -15,6 +15,8 @@
  */
 package com.redsaz.embeddedrest;
 
+import com.redsaz.embeddedrest.core.AppClientException;
+import com.redsaz.embeddedrest.core.AppException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;

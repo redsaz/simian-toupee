@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.redsaz.embeddedrest;
+package com.redsaz.embeddedrest.view;
 
+import com.redsaz.embeddedrest.core.EmbeddedRestMediaType;
+import com.redsaz.embeddedrest.model.Note;
 import java.util.Collections;
 import java.util.List;
 import javax.inject.Inject;
@@ -29,6 +31,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import com.redsaz.embeddedrest.core.NotesService;
 
 /**
  * An endpoint for accessing notes. Many of the REST endpoints and browser
@@ -37,16 +40,16 @@ import javax.ws.rs.core.Response.Status;
  * @author Redsaz <redsaz@gmail.com>
  */
 @Path("/notes")
-public class NotesService {
+public class NotesResource {
 
-    private NotesResource notesRes;
+    private NotesService notesSrv;
 
-    public NotesService() {
+    public NotesResource() {
     }
 
     @Inject
-    public NotesService(NotesResource notesResource) {
-        notesRes = notesResource;
+    public NotesResource(NotesService notesService) {
+        notesSrv = notesService;
     }
 
     /**
@@ -57,7 +60,7 @@ public class NotesService {
     @GET
     @Produces(EmbeddedRestMediaType.NOTES_V1_JSON)
     public Response listNotes() {
-        return Response.ok(notesRes.getNotes()).build();
+        return Response.ok(notesSrv.getNotes()).build();
     }
 
     /**
@@ -72,7 +75,7 @@ public class NotesService {
     @Produces({EmbeddedRestMediaType.NOTE_V1_JSON})
     @Path("{id}/{uriName}")
     public Response getNote(@PathParam("id") long id, @PathParam("uriName") String uriName) {
-        Note note = notesRes.getNote(id);
+        Note note = notesSrv.getNote(id);
         if (note == null) {
             throw new NotFoundException("Could not find note id=" + id);
         }
@@ -89,7 +92,7 @@ public class NotesService {
     @Produces({EmbeddedRestMediaType.NOTE_V1_JSON})
     @Path("{id}")
     public Response getNoteById(@PathParam("id") long id) {
-        Note note = notesRes.getNote(id);
+        Note note = notesSrv.getNote(id);
         if (note == null) {
             throw new NotFoundException("Could not find note id=" + id);
         }
@@ -100,7 +103,7 @@ public class NotesService {
     @Consumes(EmbeddedRestMediaType.NOTES_V1_JSON)
     @Produces({EmbeddedRestMediaType.NOTES_V1_JSON})
     public Response createNotes(List<Note> notes) {
-        return Response.status(Status.CREATED).entity(notesRes.createAll(notes)).build();
+        return Response.status(Status.CREATED).entity(notesSrv.createAll(notes)).build();
     }
 
     @POST
@@ -108,14 +111,14 @@ public class NotesService {
     @Produces({EmbeddedRestMediaType.NOTE_V1_JSON})
     public Response createNote(Note note) {
         List<Note> notes = Collections.singletonList(note);
-        return Response.status(Status.CREATED).entity(notesRes.createAll(notes)).build();
+        return Response.status(Status.CREATED).entity(notesSrv.createAll(notes)).build();
     }
 
     @PUT
     @Consumes(EmbeddedRestMediaType.NOTES_V1_JSON)
     @Produces({EmbeddedRestMediaType.NOTES_V1_JSON})
     public Response updateNotes(List<Note> notes) {
-        return Response.status(Status.ACCEPTED).entity(notesRes.updateAll(notes)).build();
+        return Response.status(Status.ACCEPTED).entity(notesSrv.updateAll(notes)).build();
     }
 
     @PUT
@@ -125,13 +128,13 @@ public class NotesService {
     public Response updateNote(@PathParam("id") long id, Note note) {
         Note withId = new Note(id, note.getUriName(), note.getTitle(), note.getBody());
         List<Note> notes = Collections.singletonList(withId);
-        return Response.status(Status.ACCEPTED).entity(notesRes.updateAll(notes)).build();
+        return Response.status(Status.ACCEPTED).entity(notesSrv.updateAll(notes)).build();
     }
 
     @DELETE
     @Path("{id}")
     public Response deleteNote(@PathParam("id") long id) {
-        notesRes.deleteNote(id);
+        notesSrv.deleteNote(id);
         return Response.status(Status.NO_CONTENT).build();
     }
 

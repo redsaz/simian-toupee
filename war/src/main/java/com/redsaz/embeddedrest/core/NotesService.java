@@ -13,16 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.redsaz.embeddedrest;
+package com.redsaz.embeddedrest.core;
 
-import freemarker.template.Configuration;
+import com.redsaz.embeddedrest.model.Note;
+import java.util.List;
 
 /**
- * Holds the {@link Configuration} since it cannot be directly proxied by CDI.
+ * Stores and accesses notes.
  *
  * @author Redsaz <redsaz@gmail.com>
  */
-public interface Templater {
+public interface NotesService {
 
-    String buildFromTemplate(Object dataModel, String templateName);
+    List<Note> getNotes();
+
+    public Note getNote(long id);
+
+    public List<Note> createAll(List<Note> notes);
+
+    public List<Note> updateAll(List<Note> notes);
+
+    public void deleteNote(long id);
 }

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.redsaz.embeddedrest;
+package com.redsaz.embeddedrest.view;
 
+import com.redsaz.embeddedrest.core.Templater;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -37,6 +38,7 @@ public class FreemarkerTemplater implements Templater {
         cfg = initConfig();
     }
 
+    @Override
     public String buildFromTemplate(Object dataModel, String templateName) {
         try {
             Template temp = cfg.getTemplate("page.ftl");
@@ -52,7 +54,7 @@ public class FreemarkerTemplater implements Templater {
 
     private static Configuration initConfig() {
         Configuration config = new Configuration(Configuration.VERSION_2_3_23);
-        config.setClassForTemplateLoading(NotesService.class, "templates");
+        config.setClassForTemplateLoading(FreemarkerTemplater.class, "templates");
         config.setDefaultEncoding("UTF-8");
         // DEBUG_HANDLER is better for debug, not production
         config.setTemplateExceptionHandler(TemplateExceptionHandler.HTML_DEBUG_HANDLER);
