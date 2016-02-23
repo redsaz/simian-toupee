@@ -111,4 +111,6 @@ Do the following:
  * Anything involving notes (Note, NotesResource, etc) are for example purposes
    only and can be deleted or transformed
  * HSQLDB, JOOQ, and Bootstrap are easily replaced
+ * The bulk of the web content are freemarker templates in
+   deciservice/src/main/resources
 
