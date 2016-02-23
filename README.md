@@ -1,4 +1,11 @@
-# Minimalist Embedded J2EE Web Application (MEJWA)
+# deciservice
+
+deciservice is a minimalist standalone J2EE web application. This means
+that it is completely self-contained, and does not require Tomcat, WildFly,
+Jetty, or anything else in order to run. However, it can still be built as
+a war and run from them if desired. Additionally, because it is
+lightweight, parts of it can be extended, changed, or removed entirely
+in order to become whatever you need it to be.
 
 The goals of this project are:
 
