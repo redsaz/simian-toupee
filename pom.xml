@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- Copyright 2015 Redsaz <redsaz@gmail.com>.
+ Copyright 2016 Redsaz <redsaz@gmail.com>.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -16,19 +16,29 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.redsaz.embeddedrest</groupId>
-    <artifactId>embeddedrest</artifactId>
+    <groupId>com.redsaz.deciservice</groupId>
+    <artifactId>deciservice-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
-        <module>init</module>
-        <module>war</module>
+        <module>deciservice-api</module>
+        <module>deciservice-store-hsql</module>
+        <module>deciservice</module>
     </modules>
     <properties>
-        <resteasyVer>3.0.12.Final</resteasyVer>
-        <jacksonVer>2.6.1</jacksonVer>
-        <undertowVer>1.2.12.Final</undertowVer>
-        <hsqldbVer>2.3.2</hsqldbVer>
+        <version.wildfly-swarm>1.0.0.Alpha8</version.wildfly-swarm>
+        <version.resteasy>3.0.12.Final</version.resteasy>
+        <version.jackson>2.7.0</version.jackson>
+        <version.hsqldb>2.3.3</version.hsqldb>
+        <version.liquibase>3.4.2</version.liquibase>
+        <version.jooq>3.7.2</version.jooq>
+        <version.snakeyaml>1.16</version.snakeyaml>
+        <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <temporaryBuildDbDriver>org.hsqldb.jdbcDriver</temporaryBuildDbDriver>
+        <temporaryBuildDb>jdbc:hsqldb:file:${project.build.directory}/tempForJooqDb;shutdown=true</temporaryBuildDb>
+        <temporaryBuildDbUser>SA</temporaryBuildDbUser>
+        <temporaryBuildDbPass>SA</temporaryBuildDbPass>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -55,87 +65,117 @@
             <dependency>
                 <groupId>org.jboss.resteasy</groupId>
                 <artifactId>resteasy-jaxrs</artifactId>
-                <version>${resteasyVer}</version>
+                <version>${version.resteasy}</version>
             </dependency>
             <dependency>
                 <groupId>org.jboss.resteasy</groupId>
                 <artifactId>resteasy-cdi</artifactId>
-                <version>${resteasyVer}</version>
+                <version>${version.resteasy}</version>
             </dependency>
             <dependency>
                 <groupId>org.jboss.resteasy</groupId>
                 <artifactId>resteasy-servlet-initializer</artifactId>
-                <version>${resteasyVer}</version>
+                <version>${version.resteasy}</version>
             </dependency>
             <dependency>
                 <groupId>org.jboss.resteasy</groupId>
                 <artifactId>resteasy-undertow</artifactId>
-                <version>${resteasyVer}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jooq</groupId>
-                <artifactId>jooq</artifactId>
-                <version>3.6.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hsqldb</groupId>
-                <artifactId>hsqldb</artifactId>
-                <version>2.3.2</version>
-            </dependency>
-            <dependency>
-                <groupId>org.liquibase</groupId>
-                <artifactId>liquibase-core</artifactId>
-                <version>3.4.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.yaml</groupId>
-                <artifactId>snakeyaml</artifactId>
-                <version>1.16</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-                <version>${jacksonVer}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-annotations</artifactId>
-                <version>${jacksonVer}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.jaxrs</groupId>
-                <artifactId>jackson-jaxrs-json-provider</artifactId>
-                <version>${jacksonVer}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.undertow</groupId>
-                <artifactId>undertow-core</artifactId>
-                <version>${undertowVer}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.undertow</groupId>
-                <artifactId>undertow-servlet</artifactId>
-                <version>${undertowVer}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.undertow</groupId>
-                <artifactId>undertow-websockets-jsr</artifactId>
-                <version>${undertowVer}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.weld.servlet</groupId>
-                <artifactId>weld-servlet</artifactId>
-                <version>3.0.0.Alpha1</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.slugify</groupId>
-                <artifactId>slugify</artifactId>
-                <version>2.1.3</version>
+                <version>${version.resteasy}</version>
             </dependency>
             <dependency>
                 <groupId>org.freemarker</groupId>
                 <artifactId>freemarker</artifactId>
                 <version>2.3.23</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${version.jackson}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${version.jackson}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-json-provider</artifactId>
+                <version>${version.jackson}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.slugify</groupId>
+                <artifactId>slugify</artifactId>
+                <version>2.1.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq</artifactId>
+                <version>${version.jooq}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hsqldb</groupId>
+                <artifactId>hsqldb</artifactId>
+                <version>${version.hsqldb}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-core</artifactId>
+                <version>${version.liquibase}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${version.snakeyaml}</version>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>3.8.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wildfly.swarm</groupId>
+                <artifactId>container</artifactId>
+                <version>${version.wildfly-swarm}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wildfly.swarm</groupId>
+                <artifactId>jaxrs</artifactId>
+                <version>${version.wildfly-swarm}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wildfly.swarm</groupId>
+                <artifactId>jaxrs-jaxb</artifactId>
+                <version>${version.wildfly-swarm}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wildfly.swarm</groupId>
+                <artifactId>jaxrs-jsonp</artifactId>
+                <version>${version.wildfly-swarm}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wildfly.swarm</groupId>
+                <artifactId>jaxrs-multipart</artifactId>
+                <version>${version.wildfly-swarm}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wildfly.swarm</groupId>
+                <artifactId>jaxrs-weld</artifactId>
+                <version>${version.wildfly-swarm}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wildfly.swarm</groupId>
+                <artifactId>undertow</artifactId>
+                <version>${version.wildfly-swarm}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wildfly.swarm</groupId>
+                <artifactId>webservices</artifactId>
+                <version>${version.wildfly-swarm}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wildfly.swarm</groupId>
+                <artifactId>weld</artifactId>
+                <version>${version.wildfly-swarm}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -147,58 +187,108 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.3</version>
                     <configuration>
-                        <source>1.7</source>
-                        <target>1.7</target>
-                        <compilerArguments>
-                            <endorseddirs>${endorsed.dir}</endorseddirs>
-                        </compilerArguments>
+                        <source>1.8</source>
+                        <target>1.8</target>
                     </configuration>
                 </plugin>
                 <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>animal-sniffer-maven-plugin</artifactId>
-                    <version>1.14</version>
+                    <groupId>org.liquibase</groupId>
+                    <artifactId>liquibase-maven-plugin</artifactId>
+                    <version>${version.liquibase}</version>
                     <configuration>
-                        <signature>
-                            <groupId>org.codehaus.mojo.signature</groupId>
-                            <artifactId>java17</artifactId>
-                            <version>1.0</version>
-                        </signature>
+                        <changeLogFile>src/main/resources/deciservice-db.yaml</changeLogFile>
+                        <driver>${temporaryBuildDbDriver}</driver>
+                        <url>${temporaryBuildDb}</url>
+                        <username>${temporaryBuildDbUser}</username>
+                        <password>${temporaryBuildDbPass}</password>
+                        <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
                     </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.yaml</groupId>
+                            <artifactId>snakeyaml</artifactId>
+                            <version>${version.snakeyaml}</version>
+                        </dependency>
+                    </dependencies>
                     <executions>
                         <execution>
-                            <id>javaTarget</id>
-                            <phase>test</phase>
+                            <phase>generate-sources</phase>
                             <goals>
-                                <goal>check</goal>
+                                <goal>update</goal>
                             </goals>
                         </execution>
                     </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.jooq</groupId>
+                    <artifactId>jooq-codegen-maven</artifactId>
+                    <version>${version.jooq}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>generate</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.hsqldb</groupId>
+                            <artifactId>hsqldb</artifactId>
+                            <version>${version.hsqldb}</version>
+                        </dependency>
+                    </dependencies>
+                    <configuration>
+                        <jdbc>
+                            <driver>${temporaryBuildDbDriver}</driver>
+                            <url>${temporaryBuildDb}</url>
+                            <user>${temporaryBuildDbUser}</user>
+                            <password>${temporaryBuildDbPass}</password>
+                        </jdbc>
+                        <generator>
+                            <name>org.jooq.util.DefaultGenerator</name>
+                            <database>
+                                <name>org.jooq.util.hsqldb.HSQLDBDatabase</name>
+                                <includes>.*</includes>
+                                <excludes></excludes>
+                                <inputSchema>PUBLIC</inputSchema>
+                            </database>
+                            <target>
+                                <packageName>com.redsaz.deciservice.model</packageName>
+                                <directory>target/generated-sources/jooq</directory>
+                            </target>
+                        </generator>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>2.3</version>
+                    <configuration>
+                        <failOnMissingWebXml>false</failOnMissingWebXml>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
     </build>
     <profiles>
         <profile>
-            <id>with-embedded</id>
+            <id>swarm</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
         </profile>
+        <!-- Some IDE's (like Netbeans) will not succeed a
+        "mvn package" when wildfly-swarm-plugin is active because
+        of some aether-impl conflict. If so, then in Netbeans
+        go to File -> Project Properties -> Configuration and
+        activate the war profile. In other IDEs it is similar. -->
+        <!-- Use for creating a war intended for JBoss WildFly -->
         <profile>
-            <id>without-embedded</id>
-            <activation>
-                <property>
-                    <!-- In some IDE controlled servers (like WildFly), the
-                    application may not start because of "CDI not found" errors.
-                    In that case, switching to this profile will fix said
-                    problem because the server (like WildFly) wants to use its
-                    own jars for CDI, and not the ones provided for embedded
-                    server. Make sure this profile is the active one for the
-                    parent project and all sub-projects. -->
-                    <name>usingServletContainer</name>
-                </property>
-            </activation>
+            <id>war-wildfly</id>
+        </profile>
+        <!-- Use for creating a war intended for Tomcat and others -->
+        <profile>
+            <id>war</id>
         </profile>
     </profiles>
 </project>

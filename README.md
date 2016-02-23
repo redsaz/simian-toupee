@@ -2,76 +2,106 @@
 
 The goals of this project are:
 
- * To provide a J2EE Web Application which can act as a base for starting other J2EE projects
- * The components included within the project can be easily replaced or removed if not needed
- * Run without requiring separately installed Servlet containers such as Tomcat or Wildfly.
- * Be able to run using separately installed Servlet containers anyway.
+ * To provide a J2EE Web Application which can act as a base for starting
+   other J2EE projects
+ * The components included within the project can be easily replaced or
+   removed if not needed
+ * Be run standalone or in a Servlet container such as Tomcat or Wildfly.
  * Have a built-in database.
  * Have an interface for both REST clients and browsers.
 
 
 # Prerequisites
 
- * Maven 3.x+
+ * Maven 3.3+
  * Git
  * Java 8+
  * If not running embedded, one of the following:
    * Tomcat 8+
-   * WildFly 8.1+
+   * WildFly 10+
 
-# Using MEJWA
+# Using deciservice
 
-MEJWA can be run as a standalone app or as a war that runs within a servlet container such as Tomcat or WildFly. It can be run from an IDE-maintained servlet container when coding and debugging.
+deciservice can be run as a standalone app or as a war that runs within a
+servlet container such as Tomcat or WildFly. It can be run from an
+IDE-maintained servlet container when coding and debugging.
 
-To build the project:
+## Build and run standalone
 
-  mvn clean install
+To build the project and run it standalone:
 
-## Running standalone
+    mvn clean install
 
-Once built, the war can be found in the war/target/ directory. Run it:
+Once built, the standalone jar can be found in the deciservice/target/
+directory. Run it:
 
-  cd war/target
-  java -jar embeddedrest.war
+    cd deciservice/target
+    java -jar deciservice-swarm.jar
 
-It will create a new directory in the user's home directory named ".embeddedrest", and then run from there. It will then spawn a new java instance and run from that location. It can be visited by going to "http://localhost:8080/notes", once finished, in order to fully shutdown:
+It will create a new directory in the working directory labelled "deciservice"
+and will contain the database. Once the application has initialized, you can
+visit the app with your browser by going to http://localhost:8080/notes .
+Once finished, close the app with Ctrl-C in the terminal.
 
-  ps aux | embeddedrest
-  kill embeddedrest_pid
+## Build and run in WildFly servlet container
 
-## Running in Servlet Container
+This is the same process as building the standalone:
 
-If choosing to run it in a servlet container instead of standalone, it depends on which servlet container you use. In any case, a directory named ".embeddedrest" will be created in your user's home folder. Unlike the embedded version, this will not extract out the war subdirectory which allows it to run standalone.
+    mvn clean install
 
-After following the steps below to start the servlet, usually it can be visited by going to "http://localhost:8080/embeddedrest/notes"
+Now, to run it in a WildFly servlet container, copy the
+deciservice/target/deciservice.war into your WildFly standalone/deployments
+directory, and run the WildFly bin/standalone script.
 
-### Tomcat or anything that isn't WildFly
+## Build and run in Tomcat (or other) servlet container
 
-Take war/target/embeddedrest.war and drop it into Tomcat's webapps/ directory, and start tomcat.
+Use the "war" profile:
 
-### Wildfly only
+    mvn clean install -Pwar
 
-Wildfly already contains many of the components that MEJWA includes for itself (in fact, much of the project is based on Wildfly, like undertow and the CDI implementation). Because of this, we need to NOT include the various components which would otherwise cause conflicts and make our project fail to run. To do this, we'll build using maven with a different profile called "without-embedded". From the project base directory:
-
-  mvn clean install -P without-embedded
-
-Once built, take the resulting war from war/target/embeddedrest.war and drop it into standalone/deployments directory, and start WildFly.
+Once built, copy the resulting deciservice/target/deciservice.war into your
+Tomcat webapps directory and start Tomcat.
 
 ## Running in IDE
 
-Having the application run via an IDE like Eclipse, Netbeans, or IntelliJ can make development quicker if the changes are applied immediately upon saving your edited files. Since this is like any other war file, you can run it as you would for normal war files. If using Tomcat, follow the instructions above for Tomcat, and if using WildFly, make sure you're using the "without-embedded" profile. Your favorite IDE should have instructions on how to do this.
+Having the application run via an IDE like Eclipse, Netbeans, or IntelliJ
+can make development quicker if the changes are applied immediately upon
+saving your edited files. Since this is like any other war file, you can
+run it as you would for normal war files. If using Tomcat, follow the
+instructions above for Tomcat, and if using WildFly, make sure you're using
+the "without-embedded" profile. Your favorite IDE should have instructions
+on how to do this.
+
 
 # REST calls
 
-The REST calls are made to the same endpoints you visited earlier, only we change the mediatypes that we accept. For example, if you were running standalone, you would vist "http://localhost:8080/notes" with your browser. We'll visit the same location, but via REST:
+The REST calls are made to the same endpoints you visited earlier, only we
+change the mediatypes that we accept. For example, if you were running
+standalone, you would vist "http://localhost:8080/notes" with your browser.
+We'll visit the same location, but via REST:
 
-curl -X GET -h "Accept: application/x-embeddedrest-v1+json" http://localhost:8080/notes
+    curl -X GET -h "Accept: application/x-deciservice-v1-notes+json" http://localhost:8080/notes
 
-You'll notice that it didn't return the HTML content, but JSON instead. We *could* get the webpage form if we wanted:
+You'll notice that it didn't return the HTML content, but JSON instead. We
+*could* get the webpage form if we wanted:
 
 curl -X GET -h "Accept: text/html" http://localhost:8080/notes
 
 (or, we could leave off the header entirely and produce the same result.)
 
-For more REST endpoints, look at docs/endpoints.md (it will also explain reasoning and other information too.)
+For more REST endpoints, look at docs/endpoints.md (it will also explain
+reasoning and other information too.)
+
+
+# Using for different projects
+
+This project is designed to be a prototype for other projects. You should be
+able to change this project and add to it for any simple web app project.
+Do the following:
+
+ * Search for "deciservice" and change the results to the name of your project
+ * Change the com.redsaz.deciservice packagename to your own package name
+ * Anything involving notes (Note, NotesResource, etc) are for example purposes
+   only and can be deleted or transformed
+ * HSQLDB, JOOQ, and Bootstrap are easily replaced
 
