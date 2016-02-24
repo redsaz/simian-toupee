@@ -16,14 +16,14 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.redsaz.deciservice</groupId>
-    <artifactId>deciservice-parent</artifactId>
+    <groupId>com.redsaz.simiantoupee</groupId>
+    <artifactId>simiantoupee-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
-        <module>deciservice-api</module>
-        <module>deciservice-store-hsql</module>
-        <module>deciservice</module>
+        <module>simiantoupee-api</module>
+        <module>simiantoupee-store-hsql</module>
+        <module>simiantoupee</module>
     </modules>
     <properties>
         <version.wildfly-swarm>1.0.0.Alpha8</version.wildfly-swarm>
@@ -161,7 +161,7 @@
                     <artifactId>liquibase-maven-plugin</artifactId>
                     <version>${version.liquibase}</version>
                     <configuration>
-                        <changeLogFile>src/main/resources/deciservice-db.yaml</changeLogFile>
+                        <changeLogFile>src/main/resources/simiantoupee-db.yaml</changeLogFile>
                         <driver>${temporaryBuildDbDriver}</driver>
                         <url>${temporaryBuildDb}</url>
                         <username>${temporaryBuildDbUser}</username>
@@ -218,7 +218,7 @@
                                 <inputSchema>PUBLIC</inputSchema>
                             </database>
                             <target>
-                                <packageName>com.redsaz.deciservice.model</packageName>
+                                <packageName>com.redsaz.simiantoupee.model</packageName>
                                 <directory>target/generated-sources/jooq</directory>
                             </target>
                         </generator>
