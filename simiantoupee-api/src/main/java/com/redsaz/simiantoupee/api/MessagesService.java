@@ -15,23 +15,23 @@
  */
 package com.redsaz.simiantoupee.api;
 
-import com.redsaz.simiantoupee.api.model.Note;
+import com.redsaz.simiantoupee.api.model.Message;
 import java.util.List;
 
 /**
- * Stores and accesses notes.
+ * Stores and accesses messages.
  *
  * @author Redsaz <redsaz@gmail.com>
  */
-public interface NotesService {
+public interface MessagesService {
 
-    List<Note> getNotes();
+    List<Message> getMessages();
 
-    public Note getNote(long id);
+    public Message getMessage(long id);
 
-    public List<Note> createAll(List<Note> notes);
+    public List<Message> createAll(List<Message> messages);
 
-    public List<Note> updateAll(List<Note> notes);
+    public List<Message> updateAll(List<Message> messages);
 
-    public void deleteNote(long id);
+    public void deleteMessage(long id);
 }

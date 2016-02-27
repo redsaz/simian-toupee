@@ -16,7 +16,7 @@
 package com.redsaz.simiantoupee;
 
 import com.redsaz.simiantoupee.api.exceptions.AppClientException;
-import com.redsaz.simiantoupee.api.model.Note;
+import com.redsaz.simiantoupee.api.model.Message;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
@@ -34,81 +34,81 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Redsaz <redsaz@gmail.com>
  */
-public class BrowserNotesResourceTest extends BaseResourceTest {
+public class BrowserMessagesResourceTest extends BaseResourceTest {
 
     @Test(dataProvider = DEFAULT_DP)
-    public void testListNotes(Context context) throws URISyntaxException {
+    public void testListMessages(Context context) throws URISyntaxException {
         // Given that the service is running...
-        // ... When the user views the notes page...
-        MockHttpRequest request = MockHttpRequest.get("/notes").accept(MediaType.TEXT_HTML);
+        // ... When the user views the messages page...
+        MockHttpRequest request = MockHttpRequest.get("/messages").accept(MediaType.TEXT_HTML);
         HttpResponse response = context.invoke(request);
 
-        // ... Then the notes list page should be returned.
+        // ... Then the messages list page should be returned.
         assertEquals(response.getStatus(), HttpServletResponse.SC_OK);
 
-        verify(context.notesService).getNotes();
+        verify(context.messagesService).getMessages();
         verify(context.templater).buildFromTemplate(any(), any(String.class));
     }
 
     @Test(dataProvider = DEFAULT_DP)
-    public void testEditNote(Context context) throws URISyntaxException {
-        // Given that a note with id=1 exists...
-        // ... when the user requests the note edit page...
-        MockHttpRequest request = MockHttpRequest.get("/notes/1/edit").accept(MediaType.TEXT_HTML);
+    public void testEditMessage(Context context) throws URISyntaxException {
+        // Given that a message with id=1 exists...
+        // ... when the user requests the message edit page...
+        MockHttpRequest request = MockHttpRequest.get("/messages/1/edit").accept(MediaType.TEXT_HTML);
         HttpResponse response = context.invoke(request);
 
-        // ... Then the page should be retrieved, and the notes contents accessed.
+        // ... Then the page should be retrieved, and the messages contents accessed.
         assertEquals(response.getStatus(), HttpServletResponse.SC_OK);
 
-        verify(context.notesService).getNote(1L);
+        verify(context.messagesService).getMessage(1L);
         verify(context.templater).buildFromTemplate(any(), any(String.class));
     }
 
     @Test(dataProvider = DEFAULT_DP)
-    public void testEditNoteNotFound(Context context) throws URISyntaxException {
-        // Given there is not a note with id=0...
-        // ...when the note id=0 edit page is requested...
-        MockHttpRequest request = MockHttpRequest.get("/notes/0/edit").accept(MediaType.TEXT_HTML);
+    public void testEditMessageNotFound(Context context) throws URISyntaxException {
+        // Given there is not a message with id=0...
+        // ...when the message id=0 edit page is requested...
+        MockHttpRequest request = MockHttpRequest.get("/messages/0/edit").accept(MediaType.TEXT_HTML);
         HttpResponse response = context.invoke(request);
 
         // ...then a 404 should be returned.
         assertEquals(response.getStatus(), HttpServletResponse.SC_NOT_FOUND);
 
-        verify(context.notesService).getNote(0L);
+        verify(context.messagesService).getMessage(0L);
     }
 
     @Test(dataProvider = DEFAULT_DP)
-    public void testGetNote(Context context) throws URISyntaxException {
-        // Given that a note with id=1 exists...
-        // ... when the user requests the note page...
-        MockHttpRequest request = MockHttpRequest.get("/notes/1").accept(MediaType.TEXT_HTML);
+    public void testGetMessage(Context context) throws URISyntaxException {
+        // Given that a message with id=1 exists...
+        // ... when the user requests the message page...
+        MockHttpRequest request = MockHttpRequest.get("/messages/1").accept(MediaType.TEXT_HTML);
         HttpResponse response = context.invoke(request);
 
-        // ... Then the page should be retrieved, and the notes contents accessed.
+        // ... Then the page should be retrieved, and the messages contents accessed.
         assertEquals(response.getStatus(), HttpServletResponse.SC_OK);
 
-        verify(context.notesService).getNote(1L);
+        verify(context.messagesService).getMessage(1L);
         verify(context.templater).buildFromTemplate(any(), any(String.class));
     }
 
     @Test(dataProvider = DEFAULT_DP)
-    public void testGetNoteNotFound(Context context) throws URISyntaxException {
-        // Given there is not a note with id=0...
-        // ...when the note id=0 page is requested...
-        MockHttpRequest request = MockHttpRequest.get("/notes/0").accept(MediaType.TEXT_HTML);
+    public void testGetMessageNotFound(Context context) throws URISyntaxException {
+        // Given there is not a message with id=0...
+        // ...when the message id=0 page is requested...
+        MockHttpRequest request = MockHttpRequest.get("/messages/0").accept(MediaType.TEXT_HTML);
         HttpResponse response = context.invoke(request);
 
         // ...then a 404 should be returned.
         assertEquals(response.getStatus(), HttpServletResponse.SC_NOT_FOUND);
 
-        verify(context.notesService).getNote(0L);
+        verify(context.messagesService).getMessage(0L);
     }
 
     @Test(dataProvider = DEFAULT_DP)
-    public void testCreateNote(Context context) throws URISyntaxException {
+    public void testCreateMessage(Context context) throws URISyntaxException {
         // Given that the service is running...
-        // ... when the user requests the create note page...
-        MockHttpRequest request = MockHttpRequest.get("/notes/create").accept(MediaType.TEXT_HTML);
+        // ... when the user requests the create message page...
+        MockHttpRequest request = MockHttpRequest.get("/messages/create").accept(MediaType.TEXT_HTML);
         HttpResponse response = context.invoke(request);
 
         // ... Then the page should be retrieved.
@@ -118,114 +118,112 @@ public class BrowserNotesResourceTest extends BaseResourceTest {
     }
 
     @Test(dataProvider = DEFAULT_DP)
-    public void testDeleteNote(Context context) throws URISyntaxException {
-        // Given that a note with id=1 exists...
-        // ... when the user requests the note deleted...
+    public void testDeleteMessage(Context context) throws URISyntaxException {
+        // Given that a message with id=1 exists...
+        // ... when the user requests the message deleted...
         MockHttpRequest request = MockHttpRequest
-                .post("/notes/delete")
+                .post("/messages/delete")
                 .addFormHeader("id", "1")
                 .accept(MediaType.TEXT_HTML);
         HttpResponse response = context.invoke(request);
 
-        // ... Then the note should be deleted, and the client instructed to
-        // redirect to the notes list page.
+        // ... Then the message should be deleted, and the client instructed to
+        // redirect to the messages list page.
         assertEquals(response.getStatus(), HttpServletResponse.SC_SEE_OTHER);
         URI actualLocation = (URI) response.getOutputHeaders().getFirst("Location");
-        URI expectedLocation = URI.create("/notes");
+        URI expectedLocation = URI.create("/messages");
         assertEquals(actualLocation, expectedLocation);
-        verify(context.notesService).deleteNote(1L);
+        verify(context.messagesService).deleteMessage(1L);
     }
 
     @Test(dataProvider = DEFAULT_DP)
-    public void testFinishEditOrCreateNote_Edit(Context context) throws URISyntaxException {
-        // Given that a note with id=1 exists...
-        // ... when the user requests the note edited...
+    public void testFinishEditOrCreateMessage_Edit(Context context) throws URISyntaxException {
+        // Given that a message with id=1 exists...
+        // ... when the user requests the message edited...
         MockHttpRequest request = MockHttpRequest
-                .post("/notes")
+                .post("/messages")
                 .addFormHeader("id", "1")
                 .addFormHeader("title", "Example Title")
                 .addFormHeader("body", "Example Body")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.TEXT_HTML);
-        when(context.notesService.updateAll(any(List.class)))
-                .thenReturn(Collections.singletonList(
-                        new Note(1, "example-title", "Example Title", "Example Body")));
+        when(context.messagesService.updateAll(any(List.class)))
+                .thenReturn(Collections.singletonList(new Message(1, "example-title", "Example Title", "Example Body")));
         HttpResponse response = context.invoke(request);
 
-        // ... Then the note should be edited, and the client instructed to
-        // redirect to the notes list page.
+        // ... Then the message should be edited, and the client instructed to
+        // redirect to the messages list page.
         assertEquals(response.getStatus(), HttpServletResponse.SC_SEE_OTHER);
         URI actualLocation = (URI) response.getOutputHeaders().getFirst("Location");
-        URI expectedLocation = URI.create("/notes");
+        URI expectedLocation = URI.create("/messages");
         assertEquals(actualLocation, expectedLocation);
-        verify(context.notesService).updateAll(any(List.class));
+        verify(context.messagesService).updateAll(any(List.class));
     }
 
     @Test(dataProvider = DEFAULT_DP)
-    public void testFinishEditOrCreateNote_EditNotFound(Context context) throws URISyntaxException {
-        // Given that a note with id=2 does not exist...
-        // ... when the user requests the note edited...
+    public void testFinishEditOrCreateMessage_EditNotFound(Context context) throws URISyntaxException {
+        // Given that a message with id=2 does not exist...
+        // ... when the user requests the message edited...
         MockHttpRequest request = MockHttpRequest
-                .post("/notes")
+                .post("/messages")
                 .addFormHeader("id", "2")
                 .addFormHeader("title", "Example Title")
                 .addFormHeader("body", "Example Body")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.TEXT_HTML);
-        when(context.notesService.updateAll(any(List.class)))
-                .thenThrow(new NotFoundException("Failed to update one or more notes."));
+        when(context.messagesService.updateAll(any(List.class)))
+                .thenThrow(new NotFoundException("Failed to update one or more messages."));
         HttpResponse response = context.invoke(request);
 
         // ... Then not found status code should be returned.
         assertEquals(response.getStatus(), HttpServletResponse.SC_NOT_FOUND);
-        verify(context.notesService).updateAll(any(List.class));
+        verify(context.messagesService).updateAll(any(List.class));
     }
 
     @Test(dataProvider = DEFAULT_DP)
-    public void testFinishEditOrCreateNote_Create(Context context) throws URISyntaxException {
-        // Given that the user is on the create note page...
-        // ... when the user clicks the button to create the note...
+    public void testFinishEditOrCreateMessage_Create(Context context) throws URISyntaxException {
+        // Given that the user is on the create message page...
+        // ... when the user clicks the button to create the message...
         MockHttpRequest request = MockHttpRequest
-                .post("/notes")
+                .post("/messages")
                 .addFormHeader("id", "0")
                 .addFormHeader("title", "Example Title")
                 .addFormHeader("body", "Example Body")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.TEXT_HTML);
-        when(context.notesService.createAll(any(List.class)))
-                .thenReturn(Collections.singletonList(
-                        new Note(2, "example-title", "Example Title", "Example Body")));
+        when(context.messagesService.createAll(any(List.class)))
+                .thenReturn(Collections.singletonList(new Message(2, "example-title", "Example Title", "Example Body")));
         HttpResponse response = context.invoke(request);
 
-        // ... Then the note should be edited, and the client instructed to
-        // redirect to the notes list page.
+        // ... Then the message should be edited, and the client instructed to
+        // redirect to the messages list page.
         assertEquals(response.getStatus(), HttpServletResponse.SC_SEE_OTHER);
         URI actualLocation = (URI) response.getOutputHeaders().getFirst("Location");
-        URI expectedLocation = URI.create("/notes");
+        URI expectedLocation = URI.create("/messages");
         assertEquals(actualLocation, expectedLocation);
-        verify(context.notesService).createAll(any(List.class));
+        verify(context.messagesService).createAll(any(List.class));
     }
 
     @Test(dataProvider = DEFAULT_DP)
-    public void testFinishEditOrCreateNote_Create_NoContentError(Context context) throws URISyntaxException {
-        // Given that the user is on the create note page...
+    public void testFinishEditOrCreateMessage_Create_NoContentError(Context context) throws URISyntaxException {
+        // Given that the user is on the create message page...
         // ... when the user does not fill out any content and
-        // clicks the button to create the note...
+        // clicks the button to create the message...
         MockHttpRequest request = MockHttpRequest
-                .post("/notes")
+                .post("/messages")
                 .addFormHeader("id", "0")
                 .addFormHeader("title", "")
                 .addFormHeader("body", "")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.TEXT_HTML);
-        when(context.notesService.createAll(any(List.class)))
-                .thenThrow(new AppClientException("Note must have at least a uri, title, or body."));
+        when(context.messagesService.createAll(any(List.class)))
+                .thenThrow(new AppClientException("Message must have at least a uri, title, or body."));
         HttpResponse response = context.invoke(request);
 
-        // ... Then the note should not be created and the client receives an
+        // ... Then the message should not be created and the client receives an
         // error page.
         assertEquals(response.getStatus(), HttpServletResponse.SC_BAD_REQUEST);
-        verify(context.notesService).createAll(any(List.class));
+        verify(context.messagesService).createAll(any(List.class));
     }
 
 }

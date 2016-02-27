@@ -22,20 +22,20 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * A collection of notes.
+ * A collection of messages.
  *
  * @author Redsaz <redsaz@gmail.com>
  */
-public class Notes {
+public class Messages {
 
-    private List<Note> notes;
+    private List<Message> messages;
 
     @JsonCreator
-    public Notes(@JsonProperty("notes") List<Note> inNotes) {
-        notes = Collections.unmodifiableList(new ArrayList<>(inNotes));
+    public Messages(@JsonProperty("messages") List<Message> inMessages) {
+        messages = Collections.unmodifiableList(new ArrayList<>(inMessages));
     }
 
-    public List<Note> getNotes() {
-        return notes;
+    public List<Message> getMessages() {
+        return messages;
     }
 }

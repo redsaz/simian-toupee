@@ -142,6 +142,16 @@
                 <artifactId>weld</artifactId>
                 <version>${version.wildfly-swarm}</version>
             </dependency>
+            <dependency>
+                <groupId>org.subethamail</groupId>
+                <artifactId>subethasmtp</artifactId>
+                <version>3.1.7</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>javax.mail</artifactId>
+                <version>1.5.5</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>

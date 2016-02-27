@@ -16,9 +16,8 @@
 package com.redsaz.simiantoupee;
 
 import com.redsaz.simiantoupee.view.Templater;
-import com.redsaz.simiantoupee.api.model.Note;
-import com.redsaz.simiantoupee.api.NotesService;
-import com.redsaz.simiantoupee.view.BrowserNotesResource;
+import com.redsaz.simiantoupee.api.model.Message;
+import com.redsaz.simiantoupee.view.BrowserMessagesResource;
 import java.util.Collections;
 import javax.servlet.http.HttpServletRequest;
 import org.jboss.resteasy.core.Dispatcher;
@@ -33,18 +32,19 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import com.redsaz.simiantoupee.api.MessagesService;
 
 /**
  * @author Redsaz <redsaz@gmail.com>
  */
 public class BaseResourceTest extends Assert {
 
-    public static final String DEFAULT_DP = "mocksForNotesService";
+    public static final String DEFAULT_DP = "mocksForMessagesService";
 
     public static class Context {
 
         public Dispatcher dispatcher;
-        public NotesService notesService;
+        public MessagesService messagesService;
         public Templater templater;
 
         public HttpResponse invoke(HttpRequest request) {
@@ -57,10 +57,10 @@ public class BaseResourceTest extends Assert {
     private static Context setup() {
         Context context = new Context();
         context.dispatcher = createDispatcher();
-        context.notesService = createNotesGoods();
+        context.messagesService = createMessagesGoods();
         context.templater = createTemplater();
 
-        context.dispatcher.getRegistry().addSingletonResource(new BrowserNotesResource(context.notesService, context.templater));
+        context.dispatcher.getRegistry().addSingletonResource(new BrowserMessagesResource(context.messagesService, context.templater));
         context.dispatcher.getProviderFactory().registerProvider(BasicExceptionMapper.class);
 
         return context;
@@ -75,15 +75,15 @@ public class BaseResourceTest extends Assert {
         return dispatcher;
     }
 
-    private static NotesService createNotesGoods() {
-        NotesService mockedNotesGoods = mock(NotesService.class);
-        Note existingNote = new Note(1L, "mock", "mockTitle", "mockBody");
-        when(mockedNotesGoods.getNote(1L)).thenReturn(existingNote);
-        Note nonExistingNote = null;
-        when(mockedNotesGoods.getNote(0L)).thenReturn(nonExistingNote);
-        when(mockedNotesGoods.getNotes()).thenReturn(Collections.singletonList(existingNote));
+    private static MessagesService createMessagesGoods() {
+        MessagesService mockedMessagesGoods = mock(MessagesService.class);
+        Message existingMessage = new Message(1L, "mock", "mockTitle", "mockBody");
+        when(mockedMessagesGoods.getMessage(1L)).thenReturn(existingMessage);
+        Message nonExistingMessage = null;
+        when(mockedMessagesGoods.getMessage(0L)).thenReturn(nonExistingMessage);
+        when(mockedMessagesGoods.getMessages()).thenReturn(Collections.singletonList(existingMessage));
 
-        return mockedNotesGoods;
+        return mockedMessagesGoods;
     }
 
     private static Templater createTemplater() {
@@ -94,7 +94,7 @@ public class BaseResourceTest extends Assert {
     }
 
     @DataProvider(name = DEFAULT_DP)
-    public static Object[][] mocksForNotesService() {
+    public static Object[][] mocksForMessagesService() {
         Context context = setup();
         return new Object[][]{new Object[]{context}};
     }

@@ -16,10 +16,10 @@
 <#escape x as x?html>
       <div class="row">
         <div class="col-sm-12 col-md-12 main">
-          <h1 class="page-header">Notes</h1>
+          <h1 class="page-header">Messages</h1>
 
           <div class="table-responsive">
-            <a href="notes/create" class="btn btn-default">Create</a>
+            <a href="messages/create" class="btn btn-default">Create</a>
             <table class="table table-striped">
               <thead>
                 <tr>
@@ -29,17 +29,17 @@
                 </tr>
               </thead>
               <tbody>
-                <#list notes as note>
+                <#list messages as message>
                 <tr>
-                  <td><a href="notes/${note.id}">${note.title}</a></td>
-                  <td>${note.body}</td>
+                  <td><a href="messages/${message.id}">${message.title}</a></td>
+                  <td>${message.body}</td>
                   <td>
-                    <form action="${base}/notes/delete" method="POST">
-                      <a href="notes/${note.id}/edit">
+                    <form action="${base}/messages/delete" method="POST">
+                      <a href="messages/${message.id}/edit">
                         <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                         <span class="sr-only">Edit</span>
                       </a>
-                      <input type="hidden" name="id" value="${note.id}"/>
+                      <input type="hidden" name="id" value="${message.id}"/>
                       <button type="submit" class="btn btn-link glyphicon glyphicon-trash"><span class="sr-only">Trash</span></button>
                     </form>
                   </td>

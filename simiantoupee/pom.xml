@@ -107,6 +107,14 @@
             <artifactId>slugify</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.subethamail</groupId>
+            <artifactId>subethasmtp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.resteasy</groupId>
             <artifactId>resteasy-jaxrs</artifactId>
             <version>1.0-beta-5</version>

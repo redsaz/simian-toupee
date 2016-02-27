@@ -21,7 +21,7 @@ databaseChangeLog:
       author: redsaz
       changes:
         - createTable:
-            tableName: note
+            tableName: message
             columns:
               - column:
                   name: id

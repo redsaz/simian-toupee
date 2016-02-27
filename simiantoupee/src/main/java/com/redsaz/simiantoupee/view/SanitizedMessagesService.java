@@ -16,118 +16,119 @@
 package com.redsaz.simiantoupee.view;
 
 import com.github.slugify.Slugify;
-import com.redsaz.simiantoupee.store.HsqlNotesService;
-import com.redsaz.simiantoupee.api.NotesService;
+import com.redsaz.simiantoupee.store.HsqlMessagesService;
 import com.redsaz.simiantoupee.api.exceptions.AppClientException;
 import com.redsaz.simiantoupee.api.exceptions.AppServerException;
-import com.redsaz.simiantoupee.api.model.Note;
+import com.redsaz.simiantoupee.api.model.Message;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
+import com.redsaz.simiantoupee.api.MessagesService;
 
 /**
- * Does not directly store notes, but is responsible for ensuring that the notes
- * sent to and retrieved from the store are correctly formatted, sized, and
- * without malicious/errorific content.
+ * Does not directly store messages, but is responsible for ensuring that the
+ * messages sent to and retrieved from the store are correctly formatted, sized,
+ * and without malicious/errorific content.
  *
  * @author Redsaz <redsaz@gmail.com>
  */
 @Default
 @ApplicationScoped
-public class SanitizedNotesService implements NotesService {
+public class SanitizedMessagesService implements MessagesService {
 
     private static final Slugify SLG = initSlug();
     private static final int SHORTENED_MAX = 60;
     private static final int SHORTENED_MIN = 12;
 
-    private final NotesService srv;
+    private final MessagesService srv;
 
-    public SanitizedNotesService() {
-        srv = new HsqlNotesService();
+    public SanitizedMessagesService() {
+        srv = new HsqlMessagesService();
     }
 
     @Override
-    public List<Note> getNotes() {
-        return sanitizeAll(srv.getNotes());
+    public List<Message> getMessages() {
+        return sanitizeAll(srv.getMessages());
     }
 
     @Override
-    public Note getNote(long id) {
-        return sanitize(srv.getNote(id));
+    public Message getMessage(long id) {
+        return sanitize(srv.getMessage(id));
     }
 
     @Override
-    public List<Note> createAll(List<Note> notes) {
-        if (notes == null || notes.isEmpty()) {
+    public List<Message> createAll(List<Message> messages) {
+        if (messages == null || messages.isEmpty()) {
             return Collections.emptyList();
         }
-        return srv.createAll(sanitizeAll(notes));
+        return srv.createAll(sanitizeAll(messages));
     }
 
     @Override
-    public List<Note> updateAll(List<Note> notes) {
-        if (notes == null || notes.isEmpty()) {
+    public List<Message> updateAll(List<Message> messages) {
+        if (messages == null || messages.isEmpty()) {
             return Collections.emptyList();
         }
-        return srv.updateAll(sanitizeAll(notes));
+        return srv.updateAll(sanitizeAll(messages));
     }
 
     @Override
-    public void deleteNote(long id) {
-        srv.deleteNote(id);
+    public void deleteMessage(long id) {
+        srv.deleteMessage(id);
     }
 
     /**
-     * Sanitizes a group of notes according to the
-     * {@link #sanitize(com.redsaz.simiantoupee.api.model.Note)} method.
+     * Sanitizes a group of messages according to the
+     * {@link #sanitize(com.redsaz.simiantoupee.api.model.Message)} method.
      *
-     * @param notes The notes to sanitize
-     * @return A List of new note instances with sanitized data.
+     * @param messages The messages to sanitize
+     * @return A List of new message instances with sanitized data.
      */
-    private static List<Note> sanitizeAll(List<Note> notes) {
-        List<Note> sanitizeds = new ArrayList<>(notes.size());
-        for (Note note : notes) {
-            sanitizeds.add(sanitize(note));
+    private static List<Message> sanitizeAll(List<Message> messages) {
+        List<Message> sanitizeds = new ArrayList<>(messages.size());
+        for (Message message : messages) {
+            sanitizeds.add(sanitize(message));
         }
         return sanitizeds;
     }
 
     /**
-     * A note must have at least a uri, a title, and/or a body. If none of them
-     * are present then note cannot be sanitized. The ID will remain unchanged.
+     * A message must have at least a uri, a title, and/or a body. If none of
+     * them are present then message cannot be sanitized. The ID will remain
+     * unchanged.
      *
-     * @param note The note to sanitize
-     * @return A new note instance with sanitized data.
+     * @param message The message to sanitize
+     * @return A new message instance with sanitized data.
      */
-    private static Note sanitize(Note note) {
-        String uriName = note.getUriName();
+    private static Message sanitize(Message message) {
+        String uriName = message.getUriName();
         if (uriName == null || uriName.isEmpty()) {
-            uriName = note.getTitle();
+            uriName = message.getTitle();
             if (uriName == null || uriName.isEmpty()) {
-                uriName = shortened(note.getBody());
+                uriName = shortened(message.getBody());
                 if (uriName == null || uriName.isEmpty()) {
-                    throw new AppClientException("Note must have at least a uri, title, or body.");
+                    throw new AppClientException("Message must have at least a uri, title, or body.");
                 }
             }
         }
         uriName = SLG.slugify(uriName);
 
-        String title = note.getTitle();
+        String title = message.getTitle();
         if (title == null) {
-            title = shortened(note.getBody());
+            title = shortened(message.getBody());
             if (title == null) {
                 title = "";
             }
         }
-        String body = note.getBody();
+        String body = message.getBody();
         if (body == null) {
             body = "";
         }
 
-        return new Note(note.getId(), uriName, title, body);
+        return new Message(message.getId(), uriName, title, body);
     }
 
     private static String shortened(String text) {

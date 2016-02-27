@@ -15,13 +15,12 @@
  */
 package com.redsaz.simiantoupee.store;
 
-import com.redsaz.simiantoupee.api.NotesService;
 import com.redsaz.simiantoupee.api.exceptions.AppException;
 import com.redsaz.simiantoupee.api.exceptions.AppServerException;
 import com.redsaz.simiantoupee.api.exceptions.NotFoundException;
-import com.redsaz.simiantoupee.api.model.Note;
-import static com.redsaz.simiantoupee.model.tables.Note.NOTE;
-import com.redsaz.simiantoupee.model.tables.records.NoteRecord;
+import com.redsaz.simiantoupee.api.model.Message;
+import static com.redsaz.simiantoupee.model.tables.Message.MESSAGE;
+import com.redsaz.simiantoupee.model.tables.records.MessageRecord;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -40,82 +39,83 @@ import org.jooq.InsertValuesStep3;
 import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
+import com.redsaz.simiantoupee.api.MessagesService;
 
 /**
- * Stores and accesses notes.
+ * Stores and accesses messages.
  *
  * @author Redsaz <redsaz@gmail.com>
  */
-public class HsqlNotesService implements NotesService {
+public class HsqlMessagesService implements MessagesService {
 
     private static final JDBCPool POOL = initPool();
 
     @Override
-    public List<Note> getNotes() {
+    public List<Message> getMessages() {
         try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
-            List<NoteRecord> nrs = context.selectFrom(NOTE).fetch();
-            return recordsToNotes(nrs);
+            List<MessageRecord> nrs = context.selectFrom(MESSAGE).fetch();
+            return recordsToMessages(nrs);
         } catch (SQLException ex) {
-            throw new AppServerException("Cannot retrieve notes: " + ex.getMessage(), ex);
+            throw new AppServerException("Cannot retrieve messages: " + ex.getMessage(), ex);
         }
     }
 
     @Override
-    public Note getNote(long id) {
+    public Message getMessage(long id) {
         try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
 
-            NoteRecord nr = context.selectFrom(NOTE).where(NOTE.ID.eq(id)).fetchOne();
-            return recordToNote(nr);
+            MessageRecord nr = context.selectFrom(MESSAGE).where(MESSAGE.ID.eq(id)).fetchOne();
+            return recordToMessage(nr);
         } catch (SQLException ex) {
-            throw new AppServerException("Cannot get note_id=" + id + " because: " + ex.getMessage(), ex);
+            throw new AppServerException("Cannot get message_id=" + id + " because: " + ex.getMessage(), ex);
         }
     }
 
     @Override
-    public List<Note> createAll(List<Note> notes) {
-        if (notes == null || notes.isEmpty()) {
+    public List<Message> createAll(List<Message> messages) {
+        if (messages == null || messages.isEmpty()) {
             return Collections.emptyList();
         }
         try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
 
-            InsertValuesStep3<NoteRecord, String, String, String> query = context.insertInto(NOTE).columns(NOTE.URINAME, NOTE.TITLE, NOTE.BODY);
-            for (Note note : notes) {
-                query.values(note.getUriName(), note.getTitle(), note.getBody());
+            InsertValuesStep3<MessageRecord, String, String, String> query = context.insertInto(MESSAGE).columns(MESSAGE.URINAME, MESSAGE.TITLE, MESSAGE.BODY);
+            for (Message message : messages) {
+                query.values(message.getUriName(), message.getTitle(), message.getBody());
             }
-            Result<NoteRecord> nrs = query.returning().fetch();
-            return recordsToNotes(nrs);
+            Result<MessageRecord> nrs = query.returning().fetch();
+            return recordsToMessages(nrs);
         } catch (SQLException ex) {
-            throw new AppServerException("Failed to create notes: " + ex.getMessage(), ex);
+            throw new AppServerException("Failed to create messages: " + ex.getMessage(), ex);
         }
     }
 
     @Override
-    public List<Note> updateAll(List<Note> notes) {
-        if (notes == null || notes.isEmpty()) {
+    public List<Message> updateAll(List<Message> messages) {
+        if (messages == null || messages.isEmpty()) {
             return Collections.emptyList();
         }
         RuntimeException updateFailure = null;
-        List<Long> ids = new ArrayList<>(notes.size());
-        for (Note note : notes) {
+        List<Long> ids = new ArrayList<>(messages.size());
+        for (Message message : messages) {
             try (Connection c = POOL.getConnection()) {
                 DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
 
-                int numNotesAffected = context.update(NOTE)
-                        .set(NOTE.URINAME, note.getUriName())
-                        .set(NOTE.TITLE, note.getTitle())
-                        .set(NOTE.BODY, note.getBody())
-                        .where(NOTE.ID.eq(note.getId())).execute();
-                if (numNotesAffected != 1) {
-                    throw new NotFoundException("Failed to update note_id="
-                            + note.getId() + " because it does not exist.");
+                int numMessagesAffected = context.update(MESSAGE)
+                        .set(MESSAGE.URINAME, message.getUriName())
+                        .set(MESSAGE.TITLE, message.getTitle())
+                        .set(MESSAGE.BODY, message.getBody())
+                        .where(MESSAGE.ID.eq(message.getId())).execute();
+                if (numMessagesAffected != 1) {
+                    throw new NotFoundException("Failed to update message_id="
+                            + message.getId() + " because it does not exist.");
                 }
-                ids.add(note.getId());
+                ids.add(message.getId());
             } catch (SQLException ex) {
                 if (updateFailure == null) {
-                    updateFailure = new AppException("Failed to update one or more notes.");
+                    updateFailure = new AppException("Failed to update one or more messages.");
                 }
                 updateFailure.addSuppressed(ex);
             } catch (NotFoundException ex) {
@@ -133,22 +133,22 @@ public class HsqlNotesService implements NotesService {
         try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
 
-            Result<NoteRecord> records = context.selectFrom(NOTE).where(NOTE.ID.in(ids)).fetch();
-            return recordsToNotes(records);
+            Result<MessageRecord> records = context.selectFrom(MESSAGE).where(MESSAGE.ID.in(ids)).fetch();
+            return recordsToMessages(records);
         } catch (SQLException ex) {
-            throw new AppServerException("Sucessfully updated note_ids=" + ids
+            throw new AppServerException("Sucessfully updated message_ids=" + ids
                     + " but failed to return the updated records: " + ex.getMessage(), ex);
         }
     }
 
     @Override
-    public void deleteNote(long id) {
+    public void deleteMessage(long id) {
         try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
 
-            context.delete(NOTE).where(NOTE.ID.eq(id)).execute();
+            context.delete(MESSAGE).where(MESSAGE.ID.eq(id)).execute();
         } catch (SQLException ex) {
-            throw new AppServerException("Failed to delete note_id=" + id
+            throw new AppServerException("Failed to delete message_id=" + id
                     + " because: " + ex.getMessage(), ex);
         }
     }
@@ -170,30 +170,30 @@ public class HsqlNotesService implements NotesService {
             Liquibase liquibase = new Liquibase("simiantoupee-db.yaml", new ClassLoaderResourceAccessor(), database);
             liquibase.update((String) null);
         } catch (SQLException | LiquibaseException ex) {
-            throw new AppServerException("Cannot initialize notes service: " + ex.getMessage(), ex);
+            throw new AppServerException("Cannot initialize messages service: " + ex.getMessage(), ex);
         }
         return jdbc;
     }
 
-    private static Note recordToNote(NoteRecord nr) {
+    private static Message recordToMessage(MessageRecord nr) {
         if (nr == null) {
             return null;
         }
-        return new Note(nr.getValue(NOTE.ID), nr.getValue(NOTE.URINAME), nr.getValue(NOTE.TITLE), nr.getValue(NOTE.BODY));
+        return new Message(nr.getValue(MESSAGE.ID), nr.getValue(MESSAGE.URINAME), nr.getValue(MESSAGE.TITLE), nr.getValue(MESSAGE.BODY));
     }
 
-    private static List<Note> recordsToNotes(List<NoteRecord> nrs) {
+    private static List<Message> recordsToMessages(List<MessageRecord> nrs) {
         if (nrs == null) {
             return null;
         }
-        List<Note> notes = new ArrayList<>(nrs.size());
-        for (NoteRecord nr : nrs) {
-            Note result = recordToNote(nr);
+        List<Message> messages = new ArrayList<>(nrs.size());
+        for (MessageRecord nr : nrs) {
+            Message result = recordToMessage(nr);
             if (result != null) {
-                notes.add(result);
+                messages.add(result);
             }
         }
-        return notes;
+        return messages;
     }
 
 }

@@ -16,8 +16,11 @@
 <#escape x as x?html>
       <div class="row">
         <div class="col-sm-12 col-md-12 main">
-          <h2>${note.title}</h2>
-          <p>${note.body}</p>
+          <form action="${base}/messages" method="POST">
+            <input type="text" class="form-control" name="title" placeholder="Title"/><br/>
+            <textarea class="form-control" rows="20" name="body"></textarea>
+            <button type="submit" class="btn btn-primary">Create</button>
+          </form>
         </div>
       </div>
 </#escape>

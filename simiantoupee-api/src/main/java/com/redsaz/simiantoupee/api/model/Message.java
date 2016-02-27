@@ -19,11 +19,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Contains the title and content of a note.
+ * Contains the title and content of a message.
  *
  * @author Redsaz <redsaz@gmail.com>
  */
-public class Note {
+public class Message {
 
     private final long id;
     private final String uriName;
@@ -31,7 +31,7 @@ public class Note {
     private final String body;
 
     @JsonCreator
-    public Note(
+    public Message(
             @JsonProperty("id") long inId,
             @JsonProperty("uriName") String inUriName,
             @JsonProperty("title") String inTitle,

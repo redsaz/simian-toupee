@@ -34,14 +34,13 @@ public class SimianToupeeApplication extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         Set<Class<?>> classes = new HashSet<>();
-        classes.add(SimianToupeeResource.class);
-        classes.add(NotesResource.class);
-        classes.add(BrowserNotesResource.class);
+        classes.add(MessagesResource.class);
+        classes.add(BrowserMessagesResource.class);
         classes.add(JacksonJsonProvider.class);
         classes.add(StaticContentFilter.class);
         classes.add(Templater.class);
         classes.add(FreemarkerTemplater.class);
-        classes.add(SanitizedNotesService.class);
+        classes.add(SanitizedMessagesService.class);
         classes.add(ExceptionMappers.class);
         classes.add(ExceptionMappers.AppExceptionMapper.class);
         classes.add(ExceptionMappers.NotFoundMapper.class);

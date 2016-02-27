@@ -22,6 +22,6 @@ package com.redsaz.simiantoupee.api;
  */
 public class SimianToupeeMediaType {
 
-    public static final String NOTES_V1_JSON = "application/x-simiantoupee-v1-notes+json";
-    public static final String NOTE_V1_JSON = "application/x-simiantoupee-v1-note+json";
+    public static final String MESSAGES_V1_JSON = "application/x-simiantoupee-v1-messages+json";
+    public static final String MESSAGE_V1_JSON = "application/x-simiantoupee-v1-message+json";
 }

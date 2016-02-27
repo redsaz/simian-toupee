@@ -15,8 +15,7 @@
  */
 package com.redsaz.simiantoupee.view;
 
-import com.redsaz.simiantoupee.api.model.Note;
-import com.redsaz.simiantoupee.api.NotesService;
+import com.redsaz.simiantoupee.api.model.Message;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,143 +34,143 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import com.redsaz.simiantoupee.api.MessagesService;
 
 /**
- * An endpoint for accessing notes. The REST endpoints and browser endpoints are
- * identical; look at docs/endpoints.md for why.
+ * An endpoint for accessing messages.
  *
  * @author Redsaz <redsaz@gmail.com>
  */
-@Path("/notes")
-public class BrowserNotesResource {
+@Path("/messages")
+public class BrowserMessagesResource {
 
-    private NotesService notesSrv;
+    private MessagesService messagesSrv;
     private Templater cfg;
 
-    public BrowserNotesResource() {
+    public BrowserMessagesResource() {
     }
 
     @Inject
-    public BrowserNotesResource(NotesService notesService, Templater config) {
-        notesSrv = notesService;
+    public BrowserMessagesResource(MessagesService messagesService, Templater config) {
+        messagesSrv = messagesService;
         cfg = config;
     }
 
     /**
-     * Presents a web page of notes.
+     * Presents a web page of messages.
      *
      * @param httpRequest The request for the page.
-     * @return Notes, by URI and title.
+     * @return Messages, by URI and title.
      */
     @GET
     @Produces(MediaType.TEXT_HTML)
-    public Response listNotes(@Context HttpServletRequest httpRequest) {
+    public Response listMessages(@Context HttpServletRequest httpRequest) {
         String base = httpRequest.getContextPath();
         String dist = base + "/dist";
-        List<Note> notes = notesSrv.getNotes();
+        List<Message> messages = messagesSrv.getMessages();
 
         Map<String, Object> root = new HashMap<>();
-        root.put("notes", notes);
+        root.put("messages", messages);
         root.put("base", base);
         root.put("dist", dist);
-        root.put("title", "Notes");
-        root.put("content", "notes-list.ftl");
+        root.put("title", "Messages");
+        root.put("content", "messages-list.ftl");
         return Response.ok(cfg.buildFromTemplate(root, "page.ftl")).build();
     }
 
     /**
-     * Presents a web page for viewing a specific note.
+     * Presents a web page for viewing a specific message.
      *
      * @param httpRequest The request for the page.
-     * @param id The id of the note.
-     * @return Note view page.
+     * @param id The id of the message.
+     * @return Message view page.
      */
     @GET
     @Produces(MediaType.TEXT_HTML)
     @Path("{id}")
-    public Response getNote(@Context HttpServletRequest httpRequest, @PathParam("id") long id) {
+    public Response getMessage(@Context HttpServletRequest httpRequest, @PathParam("id") long id) {
         String base = httpRequest.getContextPath();
         String dist = base + "/dist";
-        Note note = notesSrv.getNote(id);
-        if (note == null) {
-            throw new NotFoundException("Could not find note id=" + id);
+        Message message = messagesSrv.getMessage(id);
+        if (message == null) {
+            throw new NotFoundException("Could not find message id=" + id);
         }
         Map<String, Object> root = new HashMap<>();
-        root.put("note", note);
+        root.put("message", message);
         root.put("base", base);
         root.put("dist", dist);
-        root.put("title", note.getTitle());
-        root.put("content", "note-view.ftl");
+        root.put("title", message.getTitle());
+        root.put("content", "message-view.ftl");
         return Response.ok(cfg.buildFromTemplate(root, "page.ftl")).build();
     }
 
     /**
-     * Presents a web page for editing a specific note.
+     * Presents a web page for editing a specific message.
      *
      * @param httpRequest The request for the page.
-     * @param id The id of the note.
-     * @return Note edit page.
+     * @param id The id of the message.
+     * @return Message edit page.
      */
     @GET
     @Produces(MediaType.TEXT_HTML)
     @Path("{id}/edit")
-    public Response editNote(@Context HttpServletRequest httpRequest, @PathParam("id") long id) {
+    public Response editMessage(@Context HttpServletRequest httpRequest, @PathParam("id") long id) {
         String base = httpRequest.getContextPath();
         String dist = base + "/dist";
-        Note note = notesSrv.getNote(id);
-        if (note == null) {
-            throw new NotFoundException("Could not find note id=" + id);
+        Message message = messagesSrv.getMessage(id);
+        if (message == null) {
+            throw new NotFoundException("Could not find message id=" + id);
         }
         Map<String, Object> root = new HashMap<>();
-        root.put("note", note);
+        root.put("message", message);
         root.put("base", base);
         root.put("dist", dist);
-        root.put("title", note.getTitle() + " - Edit");
-        root.put("content", "note-edit.ftl");
+        root.put("title", message.getTitle() + " - Edit");
+        root.put("content", "message-edit.ftl");
         return Response.ok(cfg.buildFromTemplate(root, "page.ftl")).build();
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces({MediaType.TEXT_HTML})
-    public Response finishEditOrCreateNote(@FormParam("id") long id,
+    public Response finishEditOrCreateMessage(@FormParam("id") long id,
             @FormParam("title") String title, @FormParam("body") String body) {
-        Note withId = new Note(id, null, title, body);
-        List<Note> notes = Collections.singletonList(withId);
+        Message withId = new Message(id, null, title, body);
+        List<Message> message = Collections.singletonList(withId);
         if (id != 0) {
-            notesSrv.updateAll(notes);
+            messagesSrv.updateAll(message);
         } else {
-            notesSrv.createAll(notes);
+            messagesSrv.createAll(message);
         }
-        Response resp = Response.seeOther(URI.create("notes")).build();
+        Response resp = Response.seeOther(URI.create("messages")).build();
         return resp;
     }
 
     /**
-     * Presents a web page for creating a specific note.
+     * Presents a web page for creating a specific message.
      *
      * @param httpRequest The request for the page.
-     * @return Note create page.
+     * @return Message create page.
      */
     @GET
     @Produces(MediaType.TEXT_HTML)
     @Path("create")
-    public Response createNote(@Context HttpServletRequest httpRequest) {
+    public Response createMessage(@Context HttpServletRequest httpRequest) {
         String base = httpRequest.getContextPath();
         String dist = base + "/dist";
         Map<String, Object> root = new HashMap<>();
         root.put("base", base);
         root.put("dist", dist);
-        root.put("title", "Create Note");
-        root.put("content", "note-create.ftl");
+        root.put("title", "Create Message");
+        root.put("content", "message-create.ftl");
         return Response.ok(cfg.buildFromTemplate(root, "page.ftl")).build();
     }
 
     @POST
     @Path("delete")
-    public Response deleteNote(@FormParam("id") long id) {
-        notesSrv.deleteNote(id);
-        Response resp = Response.seeOther(URI.create("/notes")).build();
+    public Response deleteMessage(@FormParam("id") long id) {
+        messagesSrv.deleteMessage(id);
+        Response resp = Response.seeOther(URI.create("/messages")).build();
         return resp;
     }
 
