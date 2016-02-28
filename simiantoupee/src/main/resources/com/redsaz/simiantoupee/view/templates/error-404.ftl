@@ -21,7 +21,6 @@
           Sorry, we couldn't find what you wanted. Would you like to:
           <ul>
             <li><a href="${base}/messages">View all</a> your messages?</li>
-            <li><a href="${base}/messages/create">Create</a> a new message?</li>
             <li><a href="javascript:history.back()">Go Back</a>?</li>
           </ul>
         </div>

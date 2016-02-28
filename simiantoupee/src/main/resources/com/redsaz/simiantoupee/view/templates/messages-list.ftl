@@ -19,7 +19,6 @@
           <h1 class="page-header">Messages</h1>
 
           <div class="table-responsive">
-            <a href="messages/create" class="btn btn-default">Create</a>
             <table class="table table-striped">
               <thead>
                 <tr>
@@ -35,10 +34,6 @@
                   <td>${message.body}</td>
                   <td>
                     <form action="${base}/messages/delete" method="POST">
-                      <a href="messages/${message.id}/edit">
-                        <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
-                        <span class="sr-only">Edit</span>
-                      </a>
                       <input type="hidden" name="id" value="${message.id}"/>
                       <button type="submit" class="btn btn-link glyphicon glyphicon-trash"><span class="sr-only">Trash</span></button>
                     </form>
