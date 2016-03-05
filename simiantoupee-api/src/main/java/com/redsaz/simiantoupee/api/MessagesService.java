@@ -15,8 +15,10 @@
  */
 package com.redsaz.simiantoupee.api;
 
-import com.redsaz.simiantoupee.api.model.Message;
+import com.redsaz.simiantoupee.api.model.BasicMessage;
+import java.io.InputStream;
 import java.util.List;
+import javax.mail.internet.MimeMessage;
 
 /**
  * Stores and accesses messages.
@@ -25,13 +27,15 @@ import java.util.List;
  */
 public interface MessagesService {
 
-    List<Message> getMessages();
+    List<BasicMessage> getBasicMessages();
 
-    public Message getMessage(long id);
+    public BasicMessage getBasicMessage(String id);
 
-    public List<Message> createAll(List<Message> messages);
+    public MimeMessage getMessage(String id);
 
-    public List<Message> updateAll(List<Message> messages);
+    public InputStream getMessageStream(String id);
 
-    public void deleteMessage(long id);
+    public String create(InputStream messageStream);
+
+    public void deleteMessage(String id);
 }

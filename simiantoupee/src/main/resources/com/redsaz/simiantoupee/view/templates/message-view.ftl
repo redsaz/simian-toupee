@@ -16,7 +16,7 @@
 <#escape x as x?html>
       <div class="row">
         <div class="col-sm-12 col-md-12 main">
-          <h2>${message.title}</h2>
+          <h2>${message.subject}</h2>
           <p>${message.body}</p>
         </div>
       </div>

@@ -16,7 +16,7 @@
 package com.redsaz.simiantoupee;
 
 import com.redsaz.simiantoupee.view.Templater;
-import com.redsaz.simiantoupee.api.model.Message;
+import com.redsaz.simiantoupee.api.model.BasicMessage;
 import com.redsaz.simiantoupee.view.BrowserMessagesResource;
 import java.util.Collections;
 import javax.servlet.http.HttpServletRequest;
@@ -30,9 +30,9 @@ import static org.mockito.Mockito.when;
 import org.resteasy.mock.MockHttpServletRequest;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
+import com.redsaz.simiantoupee.api.MessagesService;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
-import com.redsaz.simiantoupee.api.MessagesService;
 
 /**
  * @author Redsaz <redsaz@gmail.com>
@@ -40,6 +40,8 @@ import com.redsaz.simiantoupee.api.MessagesService;
 public class BaseResourceTest extends Assert {
 
     public static final String DEFAULT_DP = "mocksForMessagesService";
+    public static final String EXISTING_MESSAGE_ID = "0000000000000000000000000000000000000000001";
+    public static final String NON_EXISTING_MESSAGE_ID = "0000000000000000000000000000000000000000000";
 
     public static class Context {
 
@@ -77,11 +79,11 @@ public class BaseResourceTest extends Assert {
 
     private static MessagesService createMessagesGoods() {
         MessagesService mockedMessagesGoods = mock(MessagesService.class);
-        Message existingMessage = new Message(1L, "mock", "mockTitle", "mockBody");
-        when(mockedMessagesGoods.getMessage(1L)).thenReturn(existingMessage);
-        Message nonExistingMessage = null;
-        when(mockedMessagesGoods.getMessage(0L)).thenReturn(nonExistingMessage);
-        when(mockedMessagesGoods.getMessages()).thenReturn(Collections.singletonList(existingMessage));
+        BasicMessage existingMessage = new BasicMessage(EXISTING_MESSAGE_ID, "mock", "mockBody", 29);
+        when(mockedMessagesGoods.getBasicMessage(EXISTING_MESSAGE_ID)).thenReturn(existingMessage);
+        BasicMessage nonExistingMessage = null;
+        when(mockedMessagesGoods.getBasicMessage(NON_EXISTING_MESSAGE_ID)).thenReturn(nonExistingMessage);
+        when(mockedMessagesGoods.getBasicMessages()).thenReturn(Collections.singletonList(existingMessage));
 
         return mockedMessagesGoods;
     }

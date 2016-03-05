@@ -15,17 +15,15 @@
  */
 package com.redsaz.simiantoupee.store;
 
-import com.redsaz.simiantoupee.api.exceptions.AppException;
+import com.google.common.io.BaseEncoding;
 import com.redsaz.simiantoupee.api.exceptions.AppServerException;
-import com.redsaz.simiantoupee.api.exceptions.NotFoundException;
-import com.redsaz.simiantoupee.api.model.Message;
+import com.redsaz.simiantoupee.api.model.BasicMessage;
 import static com.redsaz.simiantoupee.model.tables.Message.MESSAGE;
 import com.redsaz.simiantoupee.model.tables.records.MessageRecord;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import liquibase.Liquibase;
 import liquibase.database.Database;
@@ -35,11 +33,22 @@ import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.hsqldb.jdbc.JDBCPool;
 import org.jooq.DSLContext;
-import org.jooq.InsertValuesStep3;
-import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 import com.redsaz.simiantoupee.api.MessagesService;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Properties;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
+import org.jooq.InsertValuesStep3;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Stores and accesses messages.
@@ -48,24 +57,37 @@ import com.redsaz.simiantoupee.api.MessagesService;
  */
 public class HsqlMessagesService implements MessagesService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(HsqlMessagesService.class);
     private static final JDBCPool POOL = initPool();
+    private static final Session SESSION = Session.getDefaultInstance(new Properties());
 
     @Override
-    public List<Message> getMessages() {
+    public List<BasicMessage> getBasicMessages() {
         try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
             List<MessageRecord> nrs = context.selectFrom(MESSAGE).fetch();
-            return recordsToMessages(nrs);
+            LOG.info("Messages: {}", nrs.size());
+            return recordsToBasicMessages(nrs);
         } catch (SQLException ex) {
             throw new AppServerException("Cannot retrieve messages: " + ex.getMessage(), ex);
         }
     }
 
     @Override
-    public Message getMessage(long id) {
+    public BasicMessage getBasicMessage(String id) {
         try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
+            MessageRecord nr = context.selectFrom(MESSAGE).where(MESSAGE.ID.eq(id)).fetchOne();
+            return recordToBasicMessage(nr);
+        } catch (SQLException ex) {
+            throw new AppServerException("Cannot get message_id=" + id + " because: " + ex.getMessage(), ex);
+        }
+    }
 
+    @Override
+    public MimeMessage getMessage(String id) {
+        try (Connection c = POOL.getConnection()) {
+            DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
             MessageRecord nr = context.selectFrom(MESSAGE).where(MESSAGE.ID.eq(id)).fetchOne();
             return recordToMessage(nr);
         } catch (SQLException ex) {
@@ -74,82 +96,57 @@ public class HsqlMessagesService implements MessagesService {
     }
 
     @Override
-    public List<Message> createAll(List<Message> messages) {
-        if (messages == null || messages.isEmpty()) {
-            return Collections.emptyList();
-        }
+    public InputStream getMessageStream(String id) {
         try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
-
-            InsertValuesStep3<MessageRecord, String, String, String> query = context.insertInto(MESSAGE).columns(MESSAGE.URINAME, MESSAGE.TITLE, MESSAGE.BODY);
-            for (Message message : messages) {
-                query.values(message.getUriName(), message.getTitle(), message.getBody());
-            }
-            Result<MessageRecord> nrs = query.returning().fetch();
-            return recordsToMessages(nrs);
+            MessageRecord nr = context.selectFrom(MESSAGE).where(MESSAGE.ID.eq(id)).fetchOne();
+            return recordToMessageStream(nr);
         } catch (SQLException ex) {
-            throw new AppServerException("Failed to create messages: " + ex.getMessage(), ex);
+            throw new AppServerException("Cannot get message_id=" + id + " because: " + ex.getMessage(), ex);
         }
     }
 
     @Override
-    public List<Message> updateAll(List<Message> messages) {
-        if (messages == null || messages.isEmpty()) {
-            return Collections.emptyList();
-        }
-        RuntimeException updateFailure = null;
-        List<Long> ids = new ArrayList<>(messages.size());
-        for (Message message : messages) {
-            try (Connection c = POOL.getConnection()) {
-                DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
-
-                int numMessagesAffected = context.update(MESSAGE)
-                        .set(MESSAGE.URINAME, message.getUriName())
-                        .set(MESSAGE.TITLE, message.getTitle())
-                        .set(MESSAGE.BODY, message.getBody())
-                        .where(MESSAGE.ID.eq(message.getId())).execute();
-                if (numMessagesAffected != 1) {
-                    throw new NotFoundException("Failed to update message_id="
-                            + message.getId() + " because it does not exist.");
-                }
-                ids.add(message.getId());
-            } catch (SQLException ex) {
-                if (updateFailure == null) {
-                    updateFailure = new AppException("Failed to update one or more messages.");
-                }
-                updateFailure.addSuppressed(ex);
-            } catch (NotFoundException ex) {
-                if (updateFailure == null) {
-                    updateFailure = ex;
-                } else {
-                    updateFailure.addSuppressed(ex);
-                }
-            }
-        }
-        if (updateFailure != null) {
-            throw updateFailure;
-        }
-
+    public void deleteMessage(String id) {
         try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
-
-            Result<MessageRecord> records = context.selectFrom(MESSAGE).where(MESSAGE.ID.in(ids)).fetch();
-            return recordsToMessages(records);
-        } catch (SQLException ex) {
-            throw new AppServerException("Sucessfully updated message_ids=" + ids
-                    + " but failed to return the updated records: " + ex.getMessage(), ex);
-        }
-    }
-
-    @Override
-    public void deleteMessage(long id) {
-        try (Connection c = POOL.getConnection()) {
-            DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
-
             context.delete(MESSAGE).where(MESSAGE.ID.eq(id)).execute();
         } catch (SQLException ex) {
             throw new AppServerException("Failed to delete message_id=" + id
                     + " because: " + ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public String create(InputStream messageStream) {
+        if (messageStream == null) {
+            return null;
+        }
+        try (Connection c = POOL.getConnection()) {
+            DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
+
+            InsertValuesStep3<MessageRecord, String, String, byte[]> query = context.insertInto(MESSAGE).columns(MESSAGE.ID, MESSAGE.SUBJECT, MESSAGE.RAW);
+
+            LOG.info("About to create a message.");
+            byte[] rawMessage = getRawMessage(messageStream);
+            BasicMessage basicMessage = getBasicMessageFromRaw(rawMessage);
+            LOG.info("Subject: {}", basicMessage.getSubject());
+            LOG.info("   Body: {}", basicMessage.getBody());
+            query.values(basicMessage.getId(), basicMessage.getSubject(), rawMessage);
+            query.execute();
+            return basicMessage.getId();
+        } catch (SQLException ex) {
+            throw new AppServerException("Failed to create message: " + ex.getMessage(), ex);
+        }
+    }
+
+    private static BasicMessage getBasicMessageFromRaw(byte[] rawMessage) {
+        try {
+            ByteArrayInputStream bais = new ByteArrayInputStream(rawMessage);
+            MimeMessage mimeMessage = new MimeMessage(SESSION, bais);
+            return new BasicMessage(calcId(rawMessage), mimeMessage.getSubject(), "asdf", rawMessage.length);
+        } catch (MessagingException ex) {
+            throw new AppServerException("Failed to create message: " + ex.getMessage(), ex);
         }
     }
 
@@ -175,25 +172,69 @@ public class HsqlMessagesService implements MessagesService {
         return jdbc;
     }
 
-    private static Message recordToMessage(MessageRecord nr) {
+    private static BasicMessage recordToBasicMessage(MessageRecord nr) {
         if (nr == null) {
             return null;
         }
-        return new Message(nr.getValue(MESSAGE.ID), nr.getValue(MESSAGE.URINAME), nr.getValue(MESSAGE.TITLE), nr.getValue(MESSAGE.BODY));
+        return getBasicMessageFromRaw(nr.getValue(MESSAGE.RAW));
     }
 
-    private static List<Message> recordsToMessages(List<MessageRecord> nrs) {
+    private static List<BasicMessage> recordsToBasicMessages(List<MessageRecord> nrs) {
         if (nrs == null) {
             return null;
         }
-        List<Message> messages = new ArrayList<>(nrs.size());
+        List<BasicMessage> messages = new ArrayList<>(nrs.size());
         for (MessageRecord nr : nrs) {
-            Message result = recordToMessage(nr);
+            BasicMessage result = recordToBasicMessage(nr);
             if (result != null) {
                 messages.add(result);
             }
         }
         return messages;
+    }
+
+    private static MimeMessage recordToMessage(MessageRecord nr) {
+        if (nr == null) {
+            return null;
+        }
+        try {
+            byte[] rawMessage = nr.getValue(MESSAGE.RAW);
+            ByteArrayInputStream bais = new ByteArrayInputStream(rawMessage);
+            return new MimeMessage(SESSION, bais);
+        } catch (MessagingException ex) {
+            throw new AppServerException("Could not parse stored message.", ex);
+        }
+    }
+
+    private static InputStream recordToMessageStream(MessageRecord nr) {
+        if (nr == null) {
+            return null;
+        }
+        byte[] rawMessage = nr.getValue(MESSAGE.RAW);
+        return new ByteArrayInputStream(rawMessage);
+    }
+
+    private static byte[] getRawMessage(InputStream is) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream(16384)) {
+            byte[] buffer = new byte[8192];
+            for (int length = is.read(buffer); length >= 0; length = is.read(buffer)) {
+                baos.write(buffer, 0, length);
+            }
+            is.close();
+            return baos.toByteArray();
+        } catch (IOException ex) {
+            throw new AppServerException("Unable to get raw message. Reason: " + ex.getMessage(), ex);
+        }
+    }
+
+    private static String calcId(byte[] rawMessage) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(rawMessage);
+            return BaseEncoding.base64Url().omitPadding().encode(hash);
+        } catch (NoSuchAlgorithmException ex) {
+            throw new AppServerException("Unable to use SHA-256 Digest. Reason: " + ex.getMessage(), ex);
+        }
     }
 
 }

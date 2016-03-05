@@ -26,16 +26,16 @@ import java.util.List;
  *
  * @author Redsaz <redsaz@gmail.com>
  */
-public class Messages {
+public class BasicMessages {
 
-    private List<Message> messages;
+    private List<BasicMessage> messages;
 
     @JsonCreator
-    public Messages(@JsonProperty("messages") List<Message> inMessages) {
+    public BasicMessages(@JsonProperty("messages") List<BasicMessage> inMessages) {
         messages = Collections.unmodifiableList(new ArrayList<>(inMessages));
     }
 
-    public List<Message> getMessages() {
+    public List<BasicMessage> getMessages() {
         return messages;
     }
 }

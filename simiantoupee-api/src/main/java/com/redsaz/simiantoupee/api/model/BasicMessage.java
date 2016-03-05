@@ -23,39 +23,39 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author Redsaz <redsaz@gmail.com>
  */
-public class Message {
+public class BasicMessage {
 
-    private final long id;
-    private final String uriName;
-    private final String title;
+    private final String id;
+    private final String subject;
     private final String body;
+    private final long size;
 
     @JsonCreator
-    public Message(
-            @JsonProperty("id") long inId,
-            @JsonProperty("uriName") String inUriName,
-            @JsonProperty("title") String inTitle,
-            @JsonProperty("body") String inBody) {
+    public BasicMessage(
+            @JsonProperty("id") String inId,
+            @JsonProperty("subject") String inSubject,
+            @JsonProperty("body") String inBody,
+            @JsonProperty() long inSize) {
         id = inId;
-        uriName = inUriName;
-        title = inTitle;
+        subject = inSubject;
         body = inBody;
+        size = inSize;
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public String getUriName() {
-        return uriName;
-    }
-
-    public String getTitle() {
-        return title;
+    public String getSubject() {
+        return subject;
     }
 
     public String getBody() {
         return body;
+    }
+
+    public long getSize() {
+        return size;
     }
 
 }

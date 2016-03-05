@@ -15,23 +15,18 @@
  */
 package com.redsaz.simiantoupee.view;
 
+import com.redsaz.simiantoupee.api.MessagesService;
 import com.redsaz.simiantoupee.api.SimianToupeeMediaType;
-import com.redsaz.simiantoupee.api.model.Message;
-import java.util.Collections;
-import java.util.List;
+import com.redsaz.simiantoupee.api.model.BasicMessage;
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import com.redsaz.simiantoupee.api.MessagesService;
 
 /**
  * Provides endpoints for retrieving messages and info about messages.
@@ -57,9 +52,9 @@ public class MessagesResource {
      * @return Messages, by URI and title.
      */
     @GET
-    @Produces(SimianToupeeMediaType.MESSAGES_V1_JSON)
+    @Produces(SimianToupeeMediaType.BASIC_MESSAGES_V1_JSON)
     public Response listMessages() {
-        return Response.ok(messagesSrv.getMessages()).build();
+        return Response.ok(messagesSrv.getBasicMessages()).build();
     }
 
     /**
@@ -71,10 +66,10 @@ public class MessagesResource {
      * @return Message.
      */
     @GET
-    @Produces({SimianToupeeMediaType.MESSAGE_V1_JSON})
+    @Produces({SimianToupeeMediaType.BASIC_MESSAGES_V1_JSON})
     @Path("{id}/{uriName}")
-    public Response getMessage(@PathParam("id") long id, @PathParam("uriName") String uriName) {
-        Message message = messagesSrv.getMessage(id);
+    public Response getMessage(@PathParam("id") String id, @PathParam("uriName") String uriName) {
+        BasicMessage message = messagesSrv.getBasicMessage(id);
         if (message == null) {
             throw new NotFoundException("Could not find message id=" + id);
         }
@@ -88,51 +83,19 @@ public class MessagesResource {
      * @return Message.
      */
     @GET
-    @Produces({SimianToupeeMediaType.MESSAGE_V1_JSON})
+    @Produces({SimianToupeeMediaType.BASIC_MESSAGE_V1_JSON})
     @Path("{id}")
-    public Response getMessageById(@PathParam("id") long id) {
-        Message message = messagesSrv.getMessage(id);
+    public Response getMessageById(@PathParam("id") String id) {
+        BasicMessage message = messagesSrv.getBasicMessage(id);
         if (message == null) {
             throw new NotFoundException("Could not find message id=" + id);
         }
         return Response.ok(message).build();
     }
 
-    @POST
-    @Consumes(SimianToupeeMediaType.MESSAGES_V1_JSON)
-    @Produces({SimianToupeeMediaType.MESSAGES_V1_JSON})
-    public Response createMessages(List<Message> messages) {
-        return Response.status(Status.CREATED).entity(messagesSrv.createAll(messages)).build();
-    }
-
-    @POST
-    @Consumes(SimianToupeeMediaType.MESSAGE_V1_JSON)
-    @Produces({SimianToupeeMediaType.MESSAGE_V1_JSON})
-    public Response createMessage(Message message) {
-        List<Message> messages = Collections.singletonList(message);
-        return Response.status(Status.CREATED).entity(messagesSrv.createAll(messages)).build();
-    }
-
-    @PUT
-    @Consumes(SimianToupeeMediaType.MESSAGES_V1_JSON)
-    @Produces({SimianToupeeMediaType.MESSAGES_V1_JSON})
-    public Response updateMessages(List<Message> messages) {
-        return Response.status(Status.ACCEPTED).entity(messagesSrv.updateAll(messages)).build();
-    }
-
-    @PUT
-    @Consumes(SimianToupeeMediaType.MESSAGE_V1_JSON)
-    @Produces({SimianToupeeMediaType.MESSAGE_V1_JSON})
-    @Path("{id}")
-    public Response updateMessage(@PathParam("id") long id, Message message) {
-        Message withId = new Message(id, message.getUriName(), message.getTitle(), message.getBody());
-        List<Message> messages = Collections.singletonList(withId);
-        return Response.status(Status.ACCEPTED).entity(messagesSrv.updateAll(messages)).build();
-    }
-
     @DELETE
     @Path("{id}")
-    public Response deleteMessage(@PathParam("id") long id) {
+    public Response deleteMessage(@PathParam("id") String id) {
         messagesSrv.deleteMessage(id);
         return Response.status(Status.NO_CONTENT).build();
     }

@@ -16,7 +16,10 @@
 package com.redsaz.simiantoupee.view;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.redsaz.simiantoupee.api.MessagesService;
 import com.redsaz.simiantoupee.api.exceptions.ExceptionMappers;
+import com.redsaz.simiantoupee.pop3.Pop3Server;
+import com.redsaz.simiantoupee.smtp.SmtpServer;
 import java.util.HashSet;
 import java.util.Set;
 import javax.ws.rs.ApplicationPath;
@@ -30,6 +33,10 @@ import javax.ws.rs.core.Application;
  */
 @ApplicationPath("/")
 public class SimianToupeeApplication extends Application {
+
+    private static final MessagesService MESSAGES_SERVICE = new SanitizedMessagesService();
+    private static final SmtpServer SMTP_SERVER = new SmtpServer(MESSAGES_SERVICE, 40025, "localhost");
+    private static final Pop3Server POP3_SERVER = new Pop3Server(MESSAGES_SERVICE, 40110);
 
     @Override
     public Set<Class<?>> getClasses() {
@@ -45,6 +52,15 @@ public class SimianToupeeApplication extends Application {
         classes.add(ExceptionMappers.AppExceptionMapper.class);
         classes.add(ExceptionMappers.NotFoundMapper.class);
         return classes;
+    }
+
+    @Override
+    public Set<Object> getSingletons() {
+        Set<Object> singletons = new HashSet<>();
+        singletons.add(MESSAGES_SERVICE);
+        singletons.add(SMTP_SERVER);
+        singletons.add(POP3_SERVER);
+        return singletons;
     }
 
 }

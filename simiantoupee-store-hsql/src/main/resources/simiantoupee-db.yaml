@@ -25,23 +25,16 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: bigint
-                  autoIncrement: true
+                  type: char(43)
                   constraints:
                     primaryKey: true
               - column:
-                  name: uriname
+                  name: subject
                   type: varchar(1024)
                   constraints:
                     unique: true
                     nullable: false
               - column:
-                  name: title
-                  type: varchar(1024)
-                  constraints:
-                    unique: true
-                    nullable: false
-              - column:
-                  name: body
-                  type: clob
+                  name: raw
+                  type: blob
             schemaName: PUBLIC

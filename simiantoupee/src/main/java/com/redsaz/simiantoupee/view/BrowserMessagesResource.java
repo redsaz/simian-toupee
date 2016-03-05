@@ -15,15 +15,13 @@
  */
 package com.redsaz.simiantoupee.view;
 
-import com.redsaz.simiantoupee.api.model.Message;
+import com.redsaz.simiantoupee.api.model.BasicMessage;
 import java.net.URI;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -67,7 +65,7 @@ public class BrowserMessagesResource {
     public Response listMessages(@Context HttpServletRequest httpRequest) {
         String base = httpRequest.getContextPath();
         String dist = base + "/dist";
-        List<Message> messages = messagesSrv.getMessages();
+        List<BasicMessage> messages = messagesSrv.getBasicMessages();
 
         Map<String, Object> root = new HashMap<>();
         root.put("messages", messages);
@@ -88,10 +86,10 @@ public class BrowserMessagesResource {
     @GET
     @Produces(MediaType.TEXT_HTML)
     @Path("{id}")
-    public Response getMessage(@Context HttpServletRequest httpRequest, @PathParam("id") long id) {
+    public Response getMessage(@Context HttpServletRequest httpRequest, @PathParam("id") String id) {
         String base = httpRequest.getContextPath();
         String dist = base + "/dist";
-        Message message = messagesSrv.getMessage(id);
+        BasicMessage message = messagesSrv.getBasicMessage(id);
         if (message == null) {
             throw new NotFoundException("Could not find message id=" + id);
         }
@@ -99,76 +97,14 @@ public class BrowserMessagesResource {
         root.put("message", message);
         root.put("base", base);
         root.put("dist", dist);
-        root.put("title", message.getTitle());
+        root.put("title", message.getSubject());
         root.put("content", "message-view.ftl");
-        return Response.ok(cfg.buildFromTemplate(root, "page.ftl")).build();
-    }
-
-    /**
-     * Presents a web page for editing a specific message.
-     *
-     * @param httpRequest The request for the page.
-     * @param id The id of the message.
-     * @return Message edit page.
-     */
-    @GET
-    @Produces(MediaType.TEXT_HTML)
-    @Path("{id}/edit")
-    public Response editMessage(@Context HttpServletRequest httpRequest, @PathParam("id") long id) {
-        String base = httpRequest.getContextPath();
-        String dist = base + "/dist";
-        Message message = messagesSrv.getMessage(id);
-        if (message == null) {
-            throw new NotFoundException("Could not find message id=" + id);
-        }
-        Map<String, Object> root = new HashMap<>();
-        root.put("message", message);
-        root.put("base", base);
-        root.put("dist", dist);
-        root.put("title", message.getTitle() + " - Edit");
-        root.put("content", "message-edit.ftl");
-        return Response.ok(cfg.buildFromTemplate(root, "page.ftl")).build();
-    }
-
-    @POST
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Produces({MediaType.TEXT_HTML})
-    public Response finishEditOrCreateMessage(@FormParam("id") long id,
-            @FormParam("title") String title, @FormParam("body") String body) {
-        Message withId = new Message(id, null, title, body);
-        List<Message> message = Collections.singletonList(withId);
-        if (id != 0) {
-            messagesSrv.updateAll(message);
-        } else {
-            messagesSrv.createAll(message);
-        }
-        Response resp = Response.seeOther(URI.create("messages")).build();
-        return resp;
-    }
-
-    /**
-     * Presents a web page for creating a specific message.
-     *
-     * @param httpRequest The request for the page.
-     * @return Message create page.
-     */
-    @GET
-    @Produces(MediaType.TEXT_HTML)
-    @Path("create")
-    public Response createMessage(@Context HttpServletRequest httpRequest) {
-        String base = httpRequest.getContextPath();
-        String dist = base + "/dist";
-        Map<String, Object> root = new HashMap<>();
-        root.put("base", base);
-        root.put("dist", dist);
-        root.put("title", "Create Message");
-        root.put("content", "message-create.ftl");
         return Response.ok(cfg.buildFromTemplate(root, "page.ftl")).build();
     }
 
     @POST
     @Path("delete")
-    public Response deleteMessage(@FormParam("id") long id) {
+    public Response deleteMessage(@FormParam("id") String id) {
         messagesSrv.deleteMessage(id);
         Response resp = Response.seeOther(URI.create("/messages")).build();
         return resp;

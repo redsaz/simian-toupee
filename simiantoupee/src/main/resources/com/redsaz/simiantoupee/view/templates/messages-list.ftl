@@ -22,7 +22,7 @@
             <table class="table table-striped">
               <thead>
                 <tr>
-                  <th>Title</th>
+                  <th>Subject</th>
                   <th>Body</th>
                   <th>Action</th>
                 </tr>
@@ -30,7 +30,7 @@
               <tbody>
                 <#list messages as message>
                 <tr>
-                  <td><a href="messages/${message.id}">${message.title}</a></td>
+                  <td><a href="messages/${message.id}">${message.subject}</a></td>
                   <td>${message.body}</td>
                   <td>
                     <form action="${base}/messages/delete" method="POST">
