@@ -17,6 +17,8 @@ package com.redsaz.simiantoupee.smtp;
 
 import java.util.Arrays;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.subethamail.smtp.AuthenticationHandler;
 import org.subethamail.smtp.AuthenticationHandlerFactory;
 import org.subethamail.smtp.RejectException;
@@ -26,6 +28,8 @@ import org.subethamail.smtp.RejectException;
  * @author Redsaz <redsaz@gmail.com>
  */
 public class AgileAuthenticationHandlerFactory implements AuthenticationHandlerFactory {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AgileAuthenticationHandlerFactory.class);
 
     // PLAIN and LOGIN use base64 encoding.
     // List retrieved from https://en.wikipedia.org/wiki/SMTP_Authentication
@@ -44,20 +48,12 @@ public class AgileAuthenticationHandlerFactory implements AuthenticationHandlerF
             private String user;
             private String pass;
 
-            private String base64DecodedString(String base64Encoded) {
-                try {
-                    byte[] b = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Encoded);
-                    return new String(b);
-                } catch (RuntimeException ex) {
-                    throw new RejectException();
-                }
-            }
-
             @Override
             public String auth(String clientInput) throws RejectException {
                 if (clientInput == null || clientInput.length() > 684) {
                     throw new RejectException();
                 }
+                LOG.info("Beginning auth...");
                 if (mech == null) {
                     mech = clientInput;
                     return "334 VXNlcm5hbWU6"; // Base64 for "Username:"
@@ -66,19 +62,25 @@ public class AgileAuthenticationHandlerFactory implements AuthenticationHandlerF
                     return "334 UGFzc3dvcmQ6"; // Base64 for "Password:"
                 }
                 pass = base64DecodedString(clientInput);
-                System.out.println("Mech: " + mech);
-                System.out.println("User: " + user);
-                System.out.println("Pass: " + pass);
-
+                LOG.info("Mech: {}\nUser: {}\nPass: {}", mech, user, pass);
                 return null;
             }
 
             @Override
             public Object getIdentity() {
-                System.out.println("getIdentity called");
+                LOG.info("getIdentity called.");
                 return null;
             }
         };
+    }
+
+    private static String base64DecodedString(String base64Encoded) {
+        try {
+            byte[] b = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Encoded);
+            return new String(b);
+        } catch (RuntimeException ex) {
+            throw new RejectException();
+        }
     }
 
 }

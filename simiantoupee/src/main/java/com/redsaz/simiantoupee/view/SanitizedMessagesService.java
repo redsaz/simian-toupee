@@ -21,6 +21,7 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import com.redsaz.simiantoupee.api.MessagesService;
+import com.redsaz.simiantoupee.api.model.MessageAddress;
 import java.io.InputStream;
 import javax.mail.internet.MimeMessage;
 
@@ -67,11 +68,29 @@ public class SanitizedMessagesService implements MessagesService {
     }
 
     @Override
-    public String create(InputStream messageStream) {
+    public String create(MessageAddress sender, InputStream messageStream) {
         if (messageStream == null) {
             return null;
         }
-        return srv.create(messageStream);
+        return srv.create(sender, messageStream);
+    }
+
+    @Override
+    public MessageAddress createAddress(String address, String name) {
+        if (address == null) {
+            return null;
+        }
+        return srv.createAddress(address, name);
+    }
+
+    @Override
+    public MessageAddress getAddress(String address) {
+        return srv.getAddress(address);
+    }
+
+    @Override
+    public MessageAddress getAddress(long id) {
+        return srv.getAddress(id);
     }
 
 }

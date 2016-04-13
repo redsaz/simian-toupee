@@ -36,6 +36,9 @@ import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 import com.redsaz.simiantoupee.api.MessagesService;
+import com.redsaz.simiantoupee.api.model.MessageAddress;
+import static com.redsaz.simiantoupee.model.tables.Address.ADDRESS;
+import com.redsaz.simiantoupee.model.tables.records.AddressRecord;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -45,8 +48,12 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
 import javax.mail.MessagingException;
 import javax.mail.Session;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
-import org.jooq.InsertValuesStep3;
+import javax.mail.internet.MimeMultipart;
+import org.jooq.InsertValuesStep2;
+import org.jooq.InsertValuesStep5;
+import org.jooq.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,21 +125,23 @@ public class HsqlMessagesService implements MessagesService {
     }
 
     @Override
-    public String create(InputStream messageStream) {
+    public String create(MessageAddress sender, InputStream messageStream) {
         if (messageStream == null) {
             return null;
         }
+        LOG.info("About to create a message.");
+        byte[] rawMessage = getRawMessage(messageStream);
+        BasicMessage basicMessage = getBasicMessageFromRaw(sender, rawMessage);
+        LOG.info(" Sender: {}", basicMessage.getSender());
+        LOG.info("Subject: {}", basicMessage.getSubject());
+        LOG.info("   Body: {}", basicMessage.getBody());
+
         try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
 
-            InsertValuesStep3<MessageRecord, String, String, byte[]> query = context.insertInto(MESSAGE).columns(MESSAGE.ID, MESSAGE.SUBJECT, MESSAGE.RAW);
+            InsertValuesStep5<MessageRecord, String, Long, String, String, byte[]> query = context.insertInto(MESSAGE).columns(MESSAGE.ID, MESSAGE.SENDER_ID, MESSAGE.SUBJECT, MESSAGE.ABSTRACT, MESSAGE.RAW);
 
-            LOG.info("About to create a message.");
-            byte[] rawMessage = getRawMessage(messageStream);
-            BasicMessage basicMessage = getBasicMessageFromRaw(rawMessage);
-            LOG.info("Subject: {}", basicMessage.getSubject());
-            LOG.info("   Body: {}", basicMessage.getBody());
-            query.values(basicMessage.getId(), basicMessage.getSubject(), rawMessage);
+            query.values(basicMessage.getId(), sender.getId(), basicMessage.getSubject(), plaintextToAbstract(basicMessage.getBody()), rawMessage);
             query.execute();
             return basicMessage.getId();
         } catch (SQLException ex) {
@@ -140,25 +149,67 @@ public class HsqlMessagesService implements MessagesService {
         }
     }
 
-    private static BasicMessage getBasicMessageFromRaw(byte[] rawMessage) {
+    @Override
+    public MessageAddress getAddress(String address) {
+        try (Connection c = POOL.getConnection()) {
+            DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
+            AddressRecord ar = context.selectFrom(ADDRESS).where(ADDRESS.EMAIL.eq(address)).fetchOne();
+            if (ar == null) {
+                return null;
+            }
+            return new MessageAddress(ar.getValue(ADDRESS.ID),
+                    ar.getValue(ADDRESS.EMAIL),
+                    ar.getValue(ADDRESS.NAME));
+        } catch (SQLException ex) {
+            throw new AppServerException("Failed to retrieve sender record for " + address + ": " + ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public MessageAddress getAddress(long id) {
+        try (Connection c = POOL.getConnection()) {
+            DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
+            AddressRecord ar = context.selectFrom(ADDRESS).where(ADDRESS.ID.eq(id)).fetchOne();
+            return new MessageAddress(ar.getValue(ADDRESS.ID),
+                    ar.getValue(ADDRESS.EMAIL),
+                    ar.getValue(ADDRESS.NAME));
+        } catch (SQLException ex) {
+            throw new AppServerException("Failed to retrieve sender record for id: " + id + ": " + ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public MessageAddress createAddress(String address, String name) {
+        try (Connection c = POOL.getConnection()) {
+            DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
+            InsertValuesStep2 query = context.insertInto(ADDRESS, ADDRESS.EMAIL, ADDRESS.NAME);
+            Record idRecord = query.values(address, name).returning(ADDRESS.ID).fetchOne();
+            return getAddress(idRecord.getValue(ADDRESS.ID));
+        } catch (SQLException ex) {
+            throw new AppServerException("Failed to create address record for " + address + ": " + ex.getMessage(), ex);
+        }
+    }
+
+    private static BasicMessage getBasicMessageFromRaw(MessageAddress sender, byte[] rawMessage) {
         try {
             ByteArrayInputStream bais = new ByteArrayInputStream(rawMessage);
             MimeMessage mimeMessage = new MimeMessage(SESSION, bais);
-            return new BasicMessage(calcId(rawMessage), mimeMessage.getSubject(), "asdf", rawMessage.length);
+            return new BasicMessage(calcId(rawMessage), sender, mimeMessage.getSubject(), getBasicBodyGist(mimeMessage), rawMessage.length);
         } catch (MessagingException ex) {
             throw new AppServerException("Failed to create message: " + ex.getMessage(), ex);
         }
     }
 
     private static JDBCPool initPool() {
-        System.out.println("Initing DB...");
+        LOG.info("Initing DB...");
         File dbDir = new File("./simiantoupee");
         if (!dbDir.exists() && !dbDir.mkdirs()) {
             throw new RuntimeException("Could not create " + dbDir);
         }
-        File dbFire = new File(dbDir, "simiantoupeedb");
+        File dbFile = new File(dbDir, "simiantoupeedb");
         JDBCPool jdbc = new JDBCPool();
-        jdbc.setUrl("jdbc:hsqldb:" + dbFire.toURI());
+        jdbc.setUrl("jdbc:hsqldb:" + dbFile.toURI());
+        LOG.info("DB URL: {}", jdbc.getUrl());
         jdbc.setUser("SA");
         jdbc.setPassword("SA");
 
@@ -172,14 +223,14 @@ public class HsqlMessagesService implements MessagesService {
         return jdbc;
     }
 
-    private static BasicMessage recordToBasicMessage(MessageRecord nr) {
+    private BasicMessage recordToBasicMessage(MessageRecord nr) {
         if (nr == null) {
             return null;
         }
-        return getBasicMessageFromRaw(nr.getValue(MESSAGE.RAW));
+        return getBasicMessageFromRaw(getAddress(nr.getValue(MESSAGE.SENDER_ID)), nr.getValue(MESSAGE.RAW));
     }
 
-    private static List<BasicMessage> recordsToBasicMessages(List<MessageRecord> nrs) {
+    private List<BasicMessage> recordsToBasicMessages(List<MessageRecord> nrs) {
         if (nrs == null) {
             return null;
         }
@@ -230,11 +281,60 @@ public class HsqlMessagesService implements MessagesService {
     private static String calcId(byte[] rawMessage) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(rawMessage);
+            for (int i = 0; i < rawMessage.length; ++i) {
+                digest.update(rawMessage[i]);
+            }
+            byte[] hash = digest.digest();
             return BaseEncoding.base64Url().omitPadding().encode(hash);
         } catch (NoSuchAlgorithmException ex) {
             throw new AppServerException("Unable to use SHA-256 Digest. Reason: " + ex.getMessage(), ex);
         }
     }
 
+    private static String getBasicBodyGist(MimeMessage mimeMessage) {
+        if (mimeMessage == null) {
+            return null;
+        }
+        try {
+            Object content = mimeMessage.getContent();
+            if (content == null) {
+                return null;
+            } else if (content instanceof String) {
+                return (String) content;
+            } else if (content instanceof MimeMultipart) {
+                return multipartToBasicBodyGist((MimeMultipart) content);
+            } else {
+                throw new AppServerException("Don't know how to handle type " + content.getClass().getName());
+            }
+        } catch (MessagingException | IOException ex) {
+            throw new AppServerException("Could not read message content.");
+        }
+    }
+
+    private static String multipartToBasicBodyGist(MimeMultipart multipart) throws MessagingException, IOException {
+        int numParts = multipart.getCount();
+        for (int i = 0; i < numParts; ++i) {
+            MimeBodyPart body = (MimeBodyPart) multipart.getBodyPart(i);
+            Object content = body.getContent();
+            if (content == null) {
+                // Do nothing. Try a different body part.
+            } else if (content instanceof String) {
+                return (String) content;
+            } else if (content instanceof MimeMultipart) {
+                return multipartToBasicBodyGist((MimeMultipart) content);
+            } else {
+                throw new AppServerException("Don't know how to handle type " + content.getClass().getName());
+            }
+        }
+        return null;
+    }
+
+    private static String plaintextToAbstract(String text) {
+        if (text == null) {
+            return "";
+        } else if (text.length() > 1000) {
+            return text.substring(0, 1000);
+        }
+        return text;
+    }
 }

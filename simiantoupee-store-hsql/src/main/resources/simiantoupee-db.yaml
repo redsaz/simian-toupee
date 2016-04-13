@@ -21,6 +21,34 @@ databaseChangeLog:
       author: redsaz
       changes:
         - createTable:
+            tableName: address
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: email
+                  type: varchar(1024)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(1024)
+                  constraints:
+                    unique: true
+                    nullable: true
+            schemaName: PUBLIC
+        - addAutoIncrement:
+            columnName: id
+            columnDataType: bigint
+            incrementBy: 1
+            startWith: 1
+            tableName: address
+        - createTable:
             tableName: message
             columns:
               - column:
@@ -29,12 +57,42 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
               - column:
+                  name: sender_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_message_sender_id
+                    references: address(id)
+              - column:
                   name: subject
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: abstract
                   type: varchar(1024)
                   constraints:
-                    unique: true
                     nullable: false
               - column:
                   name: raw
                   type: blob
             schemaName: PUBLIC
+        - createTable:
+            tableName: receiver_message
+            columns:
+              - column:
+                  name: receiver_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_receiver_id
+                    references: address(id)
+              - column:
+                  name: message_id
+                  type: char(43)
+                  constraints:
+                    foreignKeyName: fk_receiver_message_id
+                    references: message(id)
+            schemaName: PUBLIC
+        - addPrimaryKey:
+            columnNames: receiver_id, message_id
+            schemaName: public
+            tableName: receiver_message

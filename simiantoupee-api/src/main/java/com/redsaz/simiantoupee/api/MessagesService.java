@@ -16,6 +16,7 @@
 package com.redsaz.simiantoupee.api;
 
 import com.redsaz.simiantoupee.api.model.BasicMessage;
+import com.redsaz.simiantoupee.api.model.MessageAddress;
 import java.io.InputStream;
 import java.util.List;
 import javax.mail.internet.MimeMessage;
@@ -35,7 +36,13 @@ public interface MessagesService {
 
     public InputStream getMessageStream(String id);
 
-    public String create(InputStream messageStream);
+    public String create(MessageAddress sender, InputStream messageStream);
 
     public void deleteMessage(String id);
+
+    public MessageAddress createAddress(String address, String name);
+
+    public MessageAddress getAddress(String address);
+
+    public MessageAddress getAddress(long id);
 }

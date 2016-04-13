@@ -31,6 +31,7 @@ import org.resteasy.mock.MockHttpServletRequest;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import com.redsaz.simiantoupee.api.MessagesService;
+import com.redsaz.simiantoupee.api.model.MessageAddress;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 
@@ -79,7 +80,8 @@ public class BaseResourceTest extends Assert {
 
     private static MessagesService createMessagesGoods() {
         MessagesService mockedMessagesGoods = mock(MessagesService.class);
-        BasicMessage existingMessage = new BasicMessage(EXISTING_MESSAGE_ID, "mock", "mockBody", 29);
+        MessageAddress sender = new MessageAddress(1, "sender@example.com", "Sender Example");
+        BasicMessage existingMessage = new BasicMessage(EXISTING_MESSAGE_ID, sender, "mock", "mockBody", 29);
         when(mockedMessagesGoods.getBasicMessage(EXISTING_MESSAGE_ID)).thenReturn(existingMessage);
         BasicMessage nonExistingMessage = null;
         when(mockedMessagesGoods.getBasicMessage(NON_EXISTING_MESSAGE_ID)).thenReturn(nonExistingMessage);

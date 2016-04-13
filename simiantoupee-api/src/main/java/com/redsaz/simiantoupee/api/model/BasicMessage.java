@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class BasicMessage {
 
     private final String id;
+    private final MessageAddress sender;
     private final String subject;
     private final String body;
     private final long size;
@@ -33,10 +34,12 @@ public class BasicMessage {
     @JsonCreator
     public BasicMessage(
             @JsonProperty("id") String inId,
+            @JsonProperty("sender") MessageAddress inSender,
             @JsonProperty("subject") String inSubject,
             @JsonProperty("body") String inBody,
             @JsonProperty() long inSize) {
         id = inId;
+        sender = inSender;
         subject = inSubject;
         body = inBody;
         size = inSize;
@@ -44,6 +47,10 @@ public class BasicMessage {
 
     public String getId() {
         return id;
+    }
+
+    public MessageAddress getSender() {
+        return sender;
     }
 
     public String getSubject() {
@@ -54,6 +61,9 @@ public class BasicMessage {
         return body;
     }
 
+    /**
+     * @return the total size (in bytes) of the original message.
+     */
     public long getSize() {
         return size;
     }
