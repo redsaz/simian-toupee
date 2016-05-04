@@ -65,7 +65,7 @@ public class BrowserMessagesResource {
     public Response listMessages(@Context HttpServletRequest httpRequest) {
         String base = httpRequest.getContextPath();
         String dist = base + "/dist";
-        List<BasicMessage> messages = messagesSrv.getBasicMessages();
+        List<BasicMessage> messages = messagesSrv.getPreviewMessages();
 
         Map<String, Object> root = new HashMap<>();
         root.put("messages", messages);

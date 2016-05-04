@@ -54,6 +54,9 @@ import javax.mail.internet.MimeMultipart;
 import org.jooq.InsertValuesStep2;
 import org.jooq.InsertValuesStep5;
 import org.jooq.Record;
+import org.jooq.Record3;
+import org.jooq.Record4;
+import org.jooq.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,12 +72,12 @@ public class HsqlMessagesService implements MessagesService {
     private static final Session SESSION = Session.getDefaultInstance(new Properties());
 
     @Override
-    public List<BasicMessage> getBasicMessages() {
+    public List<BasicMessage> getPreviewMessages() {
         try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
-            List<MessageRecord> nrs = context.selectFrom(MESSAGE).fetch();
+            Result<Record4<String, String, String, Long>> nrs = context.select(MESSAGE.ID, MESSAGE.SUBJECT, MESSAGE.ABSTRACT, MESSAGE.SENDER_ID).from(MESSAGE).fetch();
             LOG.info("Messages: {}", nrs.size());
-            return recordsToBasicMessages(nrs);
+            return previewRecordsToPreviewMessages(nrs);
         } catch (SQLException ex) {
             throw new AppServerException("Cannot retrieve messages: " + ex.getMessage(), ex);
         }
@@ -129,19 +132,17 @@ public class HsqlMessagesService implements MessagesService {
         if (messageStream == null) {
             return null;
         }
-        LOG.info("About to create a message.");
+        LOG.debug("About to create a message.");
         byte[] rawMessage = getRawMessage(messageStream);
         BasicMessage basicMessage = getBasicMessageFromRaw(sender, rawMessage);
-        LOG.info(" Sender: {}", basicMessage.getSender());
-        LOG.info("Subject: {}", basicMessage.getSubject());
-        LOG.info("   Body: {}", basicMessage.getBody());
+        LOG.debug(" Sender: {}", basicMessage.getSender());
 
         try (Connection c = POOL.getConnection()) {
             DSLContext context = DSL.using(c, SQLDialect.HSQLDB);
 
             InsertValuesStep5<MessageRecord, String, Long, String, String, byte[]> query = context.insertInto(MESSAGE).columns(MESSAGE.ID, MESSAGE.SENDER_ID, MESSAGE.SUBJECT, MESSAGE.ABSTRACT, MESSAGE.RAW);
 
-            query.values(basicMessage.getId(), sender.getId(), basicMessage.getSubject(), plaintextToAbstract(basicMessage.getBody()), rawMessage);
+            query.values(basicMessage.getId(), sender.getId(), truncateText(basicMessage.getSubject(), 100, true), truncateText(basicMessage.getBody(), 100, false), rawMessage);
             query.execute();
             return basicMessage.getId();
         } catch (SQLException ex) {
@@ -244,6 +245,18 @@ public class HsqlMessagesService implements MessagesService {
         return messages;
     }
 
+    private List<BasicMessage> previewRecordsToPreviewMessages(Result<Record4<String, String, String, Long>> nrs) {
+        if (nrs == null) {
+            return null;
+        }
+        List<BasicMessage> messages = new ArrayList<>(nrs.size());
+        for (Record4 nr : nrs) {
+            BasicMessage result = new BasicMessage(nr.getValue(MESSAGE.ID), getAddress(nr.getValue(MESSAGE.SENDER_ID)), nr.getValue(MESSAGE.SUBJECT), nr.getValue(MESSAGE.ABSTRACT), 0);
+            messages.add(result);
+        }
+        return messages;
+    }
+
     private static MimeMessage recordToMessage(MessageRecord nr) {
         if (nr == null) {
             return null;
@@ -329,12 +342,24 @@ public class HsqlMessagesService implements MessagesService {
         return null;
     }
 
-    private static String plaintextToAbstract(String text) {
+    private static String truncateText(String text, int maxChars, boolean ellipses) {
+        if (maxChars < 1 || (ellipses && maxChars < 4)) {
+            throw new RuntimeException("maxChars must be at least 1 character long without ellipses, or 4 with ellipses.");
+        }
         if (text == null) {
             return "";
-        } else if (text.length() > 1000) {
-            return text.substring(0, 1000);
+        } else if (text.length() > maxChars) {
+            String result;
+            if (ellipses) {
+                StringBuilder sb = new StringBuilder(text.substring(0, maxChars - 3));
+                sb.append("...");
+                result = sb.toString();
+            } else {
+                result = text.substring(0, maxChars);
+            }
+            return result;
         }
         return text;
     }
+
 }

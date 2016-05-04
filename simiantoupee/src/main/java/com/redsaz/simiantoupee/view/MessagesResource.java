@@ -54,7 +54,7 @@ public class MessagesResource {
     @GET
     @Produces(SimianToupeeMediaType.BASIC_MESSAGES_V1_JSON)
     public Response listMessages() {
-        return Response.ok(messagesSrv.getBasicMessages()).build();
+        return Response.ok(messagesSrv.getPreviewMessages()).build();
     }
 
     /**

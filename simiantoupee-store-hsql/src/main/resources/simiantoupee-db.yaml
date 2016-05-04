@@ -64,12 +64,12 @@ databaseChangeLog:
                     references: address(id)
               - column:
                   name: subject
-                  type: varchar(256)
+                  type: varchar(100)
                   constraints:
                     nullable: false
               - column:
                   name: abstract
-                  type: varchar(1024)
+                  type: varchar(100)
                   constraints:
                     nullable: false
               - column:

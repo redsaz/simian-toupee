@@ -28,7 +28,7 @@ import javax.mail.internet.MimeMessage;
  */
 public interface MessagesService {
 
-    List<BasicMessage> getBasicMessages();
+    List<BasicMessage> getPreviewMessages();
 
     public BasicMessage getBasicMessage(String id);
 

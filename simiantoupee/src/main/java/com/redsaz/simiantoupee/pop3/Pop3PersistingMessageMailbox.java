@@ -72,7 +72,7 @@ public class Pop3PersistingMessageMailbox implements Mailbox {
 
     @Override
     public List<MessageMetaData> getMessages() throws IOException {
-        List<BasicMessage> basicMsgs = msgSrv.getBasicMessages();
+        List<BasicMessage> basicMsgs = msgSrv.getPreviewMessages();
         List<MessageMetaData> metas = new ArrayList<>(basicMsgs.size());
         for (BasicMessage basicMsg : basicMsgs) {
             MessageMetaData mmd = new MessageMetaData(basicMsg.getId(), basicMsg.getSize());

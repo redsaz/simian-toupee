@@ -85,7 +85,7 @@ public class BaseResourceTest extends Assert {
         when(mockedMessagesGoods.getBasicMessage(EXISTING_MESSAGE_ID)).thenReturn(existingMessage);
         BasicMessage nonExistingMessage = null;
         when(mockedMessagesGoods.getBasicMessage(NON_EXISTING_MESSAGE_ID)).thenReturn(nonExistingMessage);
-        when(mockedMessagesGoods.getBasicMessages()).thenReturn(Collections.singletonList(existingMessage));
+        when(mockedMessagesGoods.getPreviewMessages()).thenReturn(Collections.singletonList(existingMessage));
 
         return mockedMessagesGoods;
     }

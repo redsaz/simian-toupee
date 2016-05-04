@@ -53,8 +53,8 @@ public class SanitizedMessagesService implements MessagesService {
     }
 
     @Override
-    public List<BasicMessage> getBasicMessages() {
-        return srv.getBasicMessages();
+    public List<BasicMessage> getPreviewMessages() {
+        return srv.getPreviewMessages();
     }
 
     @Override

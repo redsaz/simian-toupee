@@ -40,7 +40,7 @@ public class BrowserMessagesResourceTest extends BaseResourceTest {
         // ... Then the messages list page should be returned.
         assertEquals(response.getStatus(), HttpServletResponse.SC_OK);
 
-        verify(context.messagesService).getBasicMessages();
+        verify(context.messagesService).getPreviewMessages();
         verify(context.templater).buildFromTemplate(any(), any(String.class));
     }
 
