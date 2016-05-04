@@ -18,24 +18,19 @@
         <div class="col-sm-12 col-md-12 main">
           <h1 class="page-header">Messages</h1>
 
-          <div class="table-responsive">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>Subject</th>
-                  <th>Body</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
+          <div class="resizable">
+            <table class="table table-striped messages">
               <tbody>
                 <#list messages as message>
                 <tr>
-                  <td><a href="messages/${message.id}">${message.subject}</a></td>
-                  <td>${message.body}</td>
+                  <td class="message">
+                    <div>
+                      <a href="messages/${message.id}">${message.subject}</a> - ${message.body}</td>
+                    </div>
                   <td>
                     <form action="${base}/messages/delete" method="POST">
                       <input type="hidden" name="id" value="${message.id}"/>
-                      <button type="submit" class="btn btn-link glyphicon glyphicon-trash"><span class="sr-only">Trash</span></button>
+                      <button type="submit" class="btn btn-link glyphicon glyphicon-trash" style="padding: 1px 1px 1px 1px;"><span class="sr-only">Trash</span></button>
                     </form>
                   </td>
                 </tr>

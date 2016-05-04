@@ -1,0 +1,22 @@
+
+table.messages {
+    table-layout: fixed;
+    width: 100%;
+    border-spacing: 0px;
+    padding: 0px;
+}
+
+table.messages > tbody > tr > td, table.messages > tr > td {
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+}
+
+td.message {
+    width: 100%;
+    overflow: visible;
+}
+
+td.message > div {
+    white-space: nowrap;
+    overflow: hidden;
+}

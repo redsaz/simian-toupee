@@ -30,6 +30,7 @@
 
     <#-- Custom styles for this template -->
     <link href="${dist}/css/dashboard.css" rel="stylesheet">
+    <link href="${dist}/css/st.css" rel="stylesheet">
 
     <#-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -62,6 +63,7 @@
     <script src="${dist}/js/jquery.min.js"></script>
     <script src="${dist}/js/bootstrap.min.js"></script>
     <script src="${dist}/js/ie10-viewport-bug-workaround.js"></script>
+    <script src="${dist}/js/st.js"></script>
   </body>
 </html>
 </#escape>
